@@ -5,7 +5,7 @@ description: Turn a placed-part circuit into placement constraints, then a route
 
 # Layout
 
-Read `schemas/constraints.schema.json`. Write constraints that say what a good placement is. Do not assign (x, y) coordinates or draw traces.
+Read `schemas/constraints.schema.json`. Write `constraints.json` in the same `designs/<slug>/` directory as the circuit and parts files. Constraints say what a good placement is. Do not assign (x, y) coordinates or draw traces. Later board files (`board.dsn`, `board.ses`) stay in that directory.
 
 Order:
 

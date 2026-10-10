@@ -5,7 +5,7 @@ description: Map a SPICE-passing circuit to real parts, KiCad symbols, and footp
 
 # Parts
 
-Start from a circuit that has passing simulation results. Replace generic or ideal components with real parts.
+Start from a circuit that has passing simulation results in its `designs/<slug>/` directory. Replace generic or ideal components with real parts. Add `parts.json` and the KiCad SKiDL file `skidl_kicad.py` in that same directory.
 
 For each part, record the manufacturer part number, nominal value, tolerance, voltage rating, current rating, power rating, package, availability, price, stock, and whether it is a preferred or basic part. Then name the KiCad symbol and footprint.
 

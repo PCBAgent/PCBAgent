@@ -7,4 +7,4 @@ Follow the pcb-agent and layout skills.
 
 Board: ${1:-the part-selected circuit}
 
-Write the placement constraints. Do not assign coordinates or draw traces. Continue through placement, routing, and board checks only where a tool exists. If a step has no tool, stop and name the file that step would read.
+Write `constraints.json` in the same `designs/<slug>/` directory. Do not assign coordinates or draw traces. Continue through placement, routing, and board checks only where a tool exists. If a step has no tool, stop and name the file that step would read.

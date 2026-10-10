@@ -17,6 +17,17 @@
     "bandwidth_hz": { "type": "number" },
     "output_current_a": { "type": "number" },
     "load": { "type": "string" },
+    "tolerances": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Allowed absolute error for each measured requirement. The user states these. Do not invent them.",
+      "properties": {
+        "output_voltage_v": { "type": "number" },
+        "gain": { "type": "number" },
+        "bandwidth_hz": { "type": "number" },
+        "output_current_a": { "type": "number" }
+      }
+    },
     "interfaces": {
       "type": "array",
       "items": { "type": "string" }

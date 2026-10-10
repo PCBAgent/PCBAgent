@@ -15,9 +15,11 @@ This repo is a Pi package. Pi itself is installed on the GX10. Do not copy the P
 | `skills/skidl` | How to write SKiDL. Simulation files use `skidl.pyspice`. A KiCad netlist is a separate file |
 | `skills/parts` | Real parts, KiCad symbols, footprints. No catalog yet |
 | `skills/layout` | Constraints, placement, routing, design-rule checks. No placer or router yet |
+| `skills/circuit/verify.py` | Simulation runner: runs `measure()` in `skidl_sim.py`, judges each result, writes `simulation-results.json` |
 | `skills/circuit/schemas/` | Circuit spec and one simulation measurement |
+| `tests/` | Runner contract and checks on every `designs/<slug>/` |
 | `skills/layout/schemas/constraints.schema.json` | Placement constraints |
-| `prompts/` | `/design`, `/verify`, `/parts`, `/layout` |
+| `prompts/` | `/design`, `/parts`, `/layout` |
 | `requirements.txt`, `setup.sh` | SKiDL 2.3.0, KiCad MCP, Freerouting 2.5.0, Pi, and `uv` |
 | `.pi/mcp.json` | `kicad-schematic` and `kicad-pcb` |
 | `models.example.json` | Ollama endpoint for Nemotron |
@@ -33,16 +35,10 @@ Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage 
 ### Example
 
 ```text
-/design 5 V to 3.3 V switching regulator, at least 2 A, small board, JLCPCB parts
+/design 5 V to 3.3 V switching regulator, output 3.3 V within 0.05 V, at least 2 A within 0.1 A into a 1.65 ohm load, maximum board size 25 mm by 20 mm, JLCPCB
 ```
 
-Read the SKiDL. The runner writes the simulation-result JSON. If any status is `fail`:
-
-```text
-/verify
-```
-
-Repeat `/verify` after each new run until every status is `pass`. Skip `/verify` when the run already passed. Then:
+`/design` writes the SKiDL, runs the tests against that design's `circuit-spec.json`, and revises the SKiDL when a measurement misses. Then:
 
 ```text
 /parts
@@ -55,17 +51,13 @@ Repeat `/verify` after each new run until every status is `pass`. Skip `/verify`
 
 `/design` takes the request.
 
-1. The model writes a circuit spec that validates against `skills/circuit/schemas/circuit-spec.schema.json`. The spec keeps the original prompt and the acceptance numbers: supply and output voltage, gain, bandwidth, current, load, interfaces, preferred parts, package limits, board size, and manufacturing constraints.
+1. The model writes a circuit spec that validates against `skills/circuit/schemas/circuit-spec.schema.json`. The spec keeps the original prompt and the acceptance numbers: supply and output voltage, gain, bandwidth, current, load, interfaces, preferred parts, package limits, board size, and manufacturing constraints. The `requirements` skill checks that spec. If a required value is missing, `/design` asks the user and does not write SKiDL until the user answers.
 2. The model chooses the architecture and writes one SKiDL simulation file, using `from skidl.pyspice import *`. It does not hand-write a SPICE deck.
-3. The model writes the test list. Each measured requirement will be one object matching `skills/circuit/schemas/simulation-result.schema.json`.
-
-`/design` stops there. It does not select catalog parts or emit coordinates.
-
-The runner, once it exists, executes that file with `.venv/bin/python`, calls ngspice, and writes an array of simulation results. The tool compares each measurement with the spec and sets `status`. Simulator exit alone is not a pass. The model does not judge the numbers.
+3. `/design` runs `.venv/bin/python -m pytest tests/test_verify.py --design designs/<slug>`. The test reads that design's `circuit-spec.json` and runs `skills/circuit/verify.py` on it. The runner imports `skidl_sim.py`, calls `measure()`, and compares each measurement with that spec's targets and tolerances. It writes `simulation-results.json` and sets `status`. On a failure it prints the measured value, the target, and whether the measurement is high or low. A failed requirement fails pytest. The runner leaves no results file when the file crashes, `measure()` is missing, a measured field is missing, or the spec has no tolerance for a measured field. Simulator exit alone is not a pass. The model does not judge the numbers. `/design` does not select catalog parts or emit coordinates.
 
 ```json
 {
-  "requirement": "output_voltage",
+  "requirement": "output_voltage_v",
   "target": 3.3,
   "measured": 2.74,
   "tolerance": 0.05,
@@ -73,7 +65,7 @@ The runner, once it exists, executes that file with `.venv/bin/python`, calls ng
 }
 ```
 
-A failure re-enters through `/verify`. The model changes the SKiDL so the same tests pass. It does not change the spec to hide a failure. The runner repeats until every status is pass. That ends the circuit stage. A SPICE pass does not establish footprint mapping, placement, or routing.
+A failure stays inside `/design`. The model reads why the measurement missed and changes the SKiDL so the same tests pass. It does not change the spec to hide a failure. `/design` repeats the tests until pytest exits 0. That ends the circuit stage. A SPICE pass does not establish footprint mapping, placement, or routing.
 
 ### 2. Parts
 
@@ -100,14 +92,14 @@ If a step has no tool, the stage stops and names the file that step would read.
 
 Natural-language specification, generated circuit, automated SPICE verification.
 
-`/design` stops after the spec, the SKiDL source, and the test list. `/verify` applies the simulation-result JSON. Neither command runs ngspice yet.
+`/design` writes the spec and the SKiDL source, runs the tests, and repairs the SKiDL until they pass.
 
 ## Remaining work
 
 Do these in order. Do not start placement or routing until the milestone holds on more than one circuit.
 
 1. On the GX10, run `./setup.sh`, point `~/.pi/agent/models.json` at `http://127.0.0.1:11434/v1` with the id from `ollama list`, then `source .venv/bin/activate && pi`. Trust the project and send `/design` with the regulator sentence. Read the SKiDL before treating it as success.
-2. Add a runner the `circuit` skill can call. It runs the pyspice file under `.venv/bin/python`, calls ngspice, and writes an array of simulation-result objects. `/verify` reads that file.
+2. Done: `skills/circuit/verify.py`. `/design` runs `.venv/bin/python -m pytest tests/test_verify.py --design designs/<slug>` for the design being checked. A plain pytest run does not sweep `designs/`.
 3. Repeat the regulator, then one amplifier or filter, and record whether the SKiDL is syntactically valid, electrically valid, connected correctly, and accepted by ngspice.
 4. After that loop is reliable: JLCPCB cache and footprint assignment, then the constraint schema against a real netlist, then a small placer and a KiCad export, then Freerouting on the exported `.dsn`, then the design-rule check on the imported `.ses`.
 

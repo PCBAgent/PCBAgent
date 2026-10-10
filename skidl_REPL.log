@@ -1,8 +1,7 @@
-WARNING: KICAD8_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/Users/michaeljao/PCBAgent/<frozen importlib._bootstrap_external>:999=>/Users/michaeljao/PCBAgent/<frozen importlib._bootstrap>:488]
-WARNING: KICAD6_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/Users/michaeljao/PCBAgent/<frozen importlib._bootstrap_external>:999=>/Users/michaeljao/PCBAgent/<frozen importlib._bootstrap>:488]
-WARNING: KICAD7_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/Users/michaeljao/PCBAgent/<frozen importlib._bootstrap_external>:999=>/Users/michaeljao/PCBAgent/<frozen importlib._bootstrap>:488]
-WARNING: KICAD10_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/Users/michaeljao/PCBAgent/<frozen importlib._bootstrap_external>:999=>/Users/michaeljao/PCBAgent/<frozen importlib._bootstrap>:488]
-WARNING: fp-lib-table file was not found. Component footprints are not available.
+WARNING: KICAD9_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/home/asus/PCBAgent/<frozen importlib._bootstrap_external>:995=>/home/asus/PCBAgent/<frozen importlib._bootstrap>:488]
+WARNING: KICAD6_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/home/asus/PCBAgent/<frozen importlib._bootstrap_external>:995=>/home/asus/PCBAgent/<frozen importlib._bootstrap>:488]
+WARNING: KICAD7_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/home/asus/PCBAgent/<frozen importlib._bootstrap_external>:995=>/home/asus/PCBAgent/<frozen importlib._bootstrap>:488]
+WARNING: KICAD8_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/home/asus/PCBAgent/<frozen importlib._bootstrap_external>:995=>/home/asus/PCBAgent/<frozen importlib._bootstrap>:488]
 WARNING: fp-lib-table file was not found. Component footprints are not available.
 WARNING: fp-lib-table file was not found. Component footprints are not available.
 WARNING: fp-lib-table file was not found. Component footprints are not available.

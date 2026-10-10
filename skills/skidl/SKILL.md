@@ -16,10 +16,22 @@ This is the file the circuit stage writes.
 ```python
 from skidl.pyspice import *
 
-reset()
+
+def measure():
+    reset()
+    vin = Net("VIN")
+    vout = Net("VOUT")
+    V(ref="VS", dc_value=5 @ u_V)["p", "n"] += vin, gnd
+    R(value=10 @ u_kOhm)["p", "n"] += vin, vout
+    R(value=6.8 @ u_kOhm)["p", "n"] += vout, gnd
+    circuit = generate_netlist()
+    op = Simulator.factory().simulation(circuit).operating_point()
+    return {"output_voltage_v": float(op.nodes["vout"][0])}
 ```
 
-That import creates `gnd`, sets the tool to SKiDL, and defines SPICE parts as constructors (`R`, `C`, `V`, …). `reset()` clears any circuit already built in this process. `generate_netlist()` returns an InSpice circuit. `print` that object to get the SPICE deck. Read a node with `node(pin_or_net)`.
+That import creates `gnd`, sets the tool to SKiDL, and defines SPICE parts as constructors (`R`, `C`, `V`, …). Build the circuit inside `measure()`, not at module level. `reset()` clears any circuit already built in this process. `generate_netlist()` returns an InSpice circuit. `print` that object to get the SPICE deck. Read a node with `node(pin_or_net)`.
+
+Simulate with `Simulator.factory().simulation(circuit)`. `circuit.simulator()` is removed and raises `NameError`. The simulation object has `operating_point()`, `dc(...)`, `ac(...)`, and `transient(step_time=..., end_time=...)`. Results are indexed by lowercase net name, such as `analysis.nodes["vout"]`, and source currents by lowercase source name, such as `analysis.branches["vs"]`. A source that delivers power reads negative. For a load current, measure the voltage across the load resistor and divide by its resistance. Convert each measurement with `float(...)` before returning it. For a switching circuit, measure the average over the last part of a transient run, after the output settles.
 
 Set values with InSpice units: `1 @ u_kOhm`, `100 @ u_nF`, `5 @ u_V`, `1 @ u_ms`.
 
@@ -101,5 +113,5 @@ For a reusable block, use `@subcircuit` and return an `Interface`. A `SubCircuit
 
 - Every source and measurement node is a named net, not only an implicit `N$` net.
 - Power pins are connected, and unused pins are on `NC` in a KiCad file.
-- The file calls `ERC()` for a KiCad netlist, or builds a deck through `generate_netlist()` for simulation.
+- The file calls `ERC()` for a KiCad netlist, or defines `measure()` and builds the deck through `generate_netlist()` for simulation.
 - Pin names in the file were printed from the part or taken from the table above.

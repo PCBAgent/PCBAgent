@@ -9,7 +9,7 @@
   "properties": {
     "requirement": {
       "type": "string",
-      "description": "Name of the spec field or derived check, such as output_voltage."
+      "description": "Name of the measured spec field, such as output_voltage_v."
     },
     "target": { "type": "number" },
     "measured": { "type": "number" },
