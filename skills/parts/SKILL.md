@@ -5,8 +5,26 @@ description: Map a SPICE-passing circuit to real parts, KiCad symbols, and footp
 
 # Parts
 
-Start from a circuit that has passing simulation results in its `designs/<slug>/` directory. Replace generic or ideal components with real parts. Add `parts.json` and the KiCad SKiDL file `skidl_kicad.py` in that same directory.
+Read `designs/<slug>/design/circuit-spec.json` and `designs/<slug>/design/skidl_sim.py`. Write `designs/<slug>/parts/`.
 
-For each part, record the manufacturer part number, nominal value, tolerance, voltage rating, current rating, power rating, package, availability, price, stock, and whether it is a preferred or basic part. Then name the KiCad symbol and footprint.
+The part source is the local JLCPCB cache at `.tools/jlcpcb/economic-parts.csv`. If that file is missing, download it once:
 
-The part source is an offline or cached JLCPCB catalog. No catalog and no lookup tool are in this package yet. Do not invent stock, price, or footprint names.
+```bash
+.venv/bin/python skills/parts/fetch_catalog.py
+```
+
+Then choose parts without using the network:
+
+```bash
+.venv/bin/python skills/parts/lookup.py designs/<slug>
+```
+
+`parts/parts.json` is the catalog result. Every manufacturer part number, value, tolerance, voltage, current, power, package, stock, price, and basic or preferred status in that file was copied from the cache. Do not invent them. A part with `matched` false or `changes_measured_value` true stops this stage. A value change means `/design` has to run again. `on_board` false is the simulated load, not a board part.
+
+Write `parts/skidl_kicad.py` from the matched on-board parts, using `from skidl import *` and `set_default_tool(KICAD)`. Use the `symbol` and `footprint` fields from `parts.json`. The file calls `ERC()` and `generate_netlist(file_="board.net")`. Then run:
+
+```bash
+.venv/bin/python skills/parts/netlist.py designs/<slug>
+```
+
+A missing footprint aborts the netlist. Do not place parts or draw traces.

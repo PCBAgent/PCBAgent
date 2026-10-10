@@ -79,8 +79,8 @@ def design(request):
     path = Path(raw)
     if not path.is_absolute():
         path = ROOT / path
-    if not (path / "circuit-spec.json").is_file():
-        pytest.fail(f"no circuit-spec.json in {path}")
+    if not (path / "design" / "circuit-spec.json").is_file():
+        pytest.fail(f"no design/circuit-spec.json in {path}")
     return path
 
 
@@ -98,14 +98,34 @@ def fake_sim(measurements):
     return f"def measure():\n    return {measurements!r}\n"
 
 
+def dc_source(voltage, returns):
+    body = ", ".join(f"{name!r}: {expr}" for name, expr in returns.items())
+    return f'''from skidl.pyspice import *
+
+
+def measure():
+    reset()
+    vout = Net("VOUT")
+    V(ref="VS", dc_value={voltage} @ u_V)["p", "n"] += vout, gnd
+    R(value=1 @ u_kOhm)["p", "n"] += vout, gnd
+    op = Simulator.factory().simulation(generate_netlist()).operating_point()
+    voltage = float(op.nodes["vout"][0])
+    return {{{body}}}
+'''
+
+
+def circuit_files(slug):
+    return slug / "design"
+
+
 def make_design(root, spec, sim_source, results=None):
-    folder = root / "design"
+    folder = circuit_files(root)
     folder.mkdir()
     (folder / "circuit-spec.json").write_text(json.dumps(spec, indent=2))
     (folder / "skidl_sim.py").write_text(sim_source)
     if results is not None:
         (folder / "simulation-results.json").write_text(json.dumps(results, indent=2))
-    return folder
+    return root
 
 
 def run_verify(design, cwd):
@@ -121,7 +141,7 @@ def run_verify(design, cwd):
 
 
 def read_results(design):
-    path = design / "simulation-results.json"
+    path = circuit_files(design) / "simulation-results.json"
     if not path.exists():
         return None
     return json.loads(path.read_text())
@@ -188,7 +208,11 @@ def test_expected_checks_refuse_to_invent_tolerance():
 
 def test_runner_writes_passing_results(tmp_path):
     spec = measured_spec(output_voltage_v=(1.0, 0.1), output_current_a=(0.5, 0.05))
-    folder = make_design(tmp_path, spec, fake_sim({"output_voltage_v": 1.02, "output_current_a": 0.51}))
+    folder = make_design(
+        tmp_path,
+        spec,
+        dc_source(1.02, {"output_voltage_v": "voltage", "output_current_a": "voltage / 2"}),
+    )
     proc = run_verify(folder, tmp_path)
     assert proc.returncode == 0, proc.stderr
     results = read_results(folder)
@@ -203,7 +227,11 @@ def test_runner_writes_passing_results(tmp_path):
 
 def test_runner_reports_out_of_tolerance_as_fail(tmp_path):
     spec = measured_spec(output_voltage_v=(1.0, 0.1), output_current_a=(0.5, 0.05))
-    folder = make_design(tmp_path, spec, fake_sim({"output_voltage_v": 0.5, "output_current_a": 0.5}))
+    folder = make_design(
+        tmp_path,
+        spec,
+        dc_source(0.5, {"output_voltage_v": "voltage", "output_current_a": "voltage"}),
+    )
     proc = run_verify(folder, tmp_path)
     assert proc.returncode == 1, proc.stderr
     assert "output_voltage_v failed" in proc.stderr
@@ -217,7 +245,7 @@ def test_runner_reports_out_of_tolerance_as_fail(tmp_path):
 def test_runner_overwrites_stale_pass_with_new_fail(tmp_path):
     spec = measured_spec(output_voltage_v=(1.0, 0.1))
     stale = [{"requirement": "output_voltage_v", "target": 1.0, "measured": 1.0, "tolerance": 0.1, "status": "pass"}]
-    folder = make_design(tmp_path, spec, fake_sim({"output_voltage_v": 0.2}), stale)
+    folder = make_design(tmp_path, spec, dc_source(0.2, {"output_voltage_v": "voltage"}), stale)
     run_verify(folder, tmp_path)
     assert by_requirement(read_results(folder))["output_voltage_v"]["status"] == "fail"
 
@@ -243,7 +271,7 @@ def test_runner_clean_exit_without_measurements_is_not_a_pass(tmp_path):
 def test_runner_missing_measurement_is_not_a_pass(tmp_path):
     spec = measured_spec(output_voltage_v=(1.0, 0.1), gain=(10, 0.5))
     stale = [{"requirement": "gain", "target": 10, "measured": 10, "tolerance": 0.5, "status": "pass"}]
-    folder = make_design(tmp_path, spec, fake_sim({"output_voltage_v": 1.0}), stale)
+    folder = make_design(tmp_path, spec, dc_source(1.0, {"output_voltage_v": "voltage"}), stale)
     proc = run_verify(folder, tmp_path)
     assert proc.returncode != 0
     assert "gain" not in passing(read_results(folder))
@@ -251,8 +279,11 @@ def test_runner_missing_measurement_is_not_a_pass(tmp_path):
 
 def test_runner_drops_checks_not_in_spec(tmp_path):
     spec = measured_spec(output_voltage_v=(1.0, 0.1))
-    measurements = {"output_voltage_v": 1.0, "switching_frequency": 300000}
-    folder = make_design(tmp_path, spec, fake_sim(measurements))
+    folder = make_design(
+        tmp_path,
+        spec,
+        dc_source(1.0, {"output_voltage_v": "voltage", "switching_frequency": "voltage"}),
+    )
     run_verify(folder, tmp_path)
     assert set(by_requirement(read_results(folder))) == {"output_voltage_v"}
 
@@ -269,9 +300,40 @@ def test_runner_refuses_spec_without_tolerance(tmp_path):
 def test_runner_never_edits_spec(tmp_path):
     spec = measured_spec(output_voltage_v=(1.0, 0.1))
     folder = make_design(tmp_path, spec, fake_sim({"output_voltage_v": 0.2}))
-    before = (folder / "circuit-spec.json").read_bytes()
+    before = (circuit_files(folder) / "circuit-spec.json").read_bytes()
     run_verify(folder, tmp_path)
-    assert (folder / "circuit-spec.json").read_bytes() == before
+    assert (circuit_files(folder) / "circuit-spec.json").read_bytes() == before
+
+
+def test_runner_rejects_spec_targets_without_a_circuit(tmp_path):
+    spec = measured_spec(output_voltage_v=(3.3, 0.05), output_current_a=(2.0, 0.1))
+    sim = "def measure():\n    return {'output_voltage_v': 3.3, 'output_current_a': 2.0}\n"
+    folder = make_design(tmp_path, spec, sim)
+    proc = run_verify(folder, tmp_path)
+    assert proc.returncode == 2
+    assert read_results(folder) is None
+    assert "ngspice" in proc.stderr
+
+
+def test_runner_rejects_simulation_scaled_to_the_target(tmp_path):
+    spec = measured_spec(output_voltage_v=(3.3, 0.05))
+    sim = '''from skidl.pyspice import *
+
+
+def measure():
+    reset()
+    vout = Net("VOUT")
+    V(ref="VS", dc_value=1 @ u_V)["p", "n"] += vout, gnd
+    R(value=1 @ u_kOhm)["p", "n"] += vout, gnd
+    op = Simulator.factory().simulation(generate_netlist()).operating_point()
+    voltage = float(op.nodes["vout"][0])
+    return {"output_voltage_v": voltage * (3.3 / voltage)}
+'''
+    folder = make_design(tmp_path, spec, sim)
+    proc = run_verify(folder, tmp_path)
+    assert proc.returncode == 2, proc.stderr
+    assert read_results(folder) is None
+    assert "not measured from the simulation" in proc.stderr
 
 
 def test_runner_measures_with_ngspice(tmp_path):
@@ -293,7 +355,7 @@ def test_runner_fails_real_simulation_off_target(tmp_path):
 
 
 def test_verify_design(design):
-    spec_path = design / "circuit-spec.json"
+    spec_path = design / "design" / "circuit-spec.json"
     spec = json.loads(spec_path.read_text())
     jsonschema.validate(spec, SPEC_SCHEMA)
     check = subprocess.run(

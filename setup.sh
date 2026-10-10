@@ -104,6 +104,10 @@ if ! grep -Fq "$freerouting_dir" "$activate"; then
 	printf 'export PATH=%q:"$PATH"\n' "$freerouting_dir" >>"$activate"
 fi
 
+if [[ ! -f .tools/jlcpcb/economic-parts.csv ]]; then
+	.venv/bin/python skills/parts/fetch_catalog.py
+fi
+
 .venv/bin/python -c "import skidl; print('skidl', skidl.__version__)"
 .venv/bin/kicad-mcp --help >/dev/null
 "$freerouting_bin" -h >/dev/null

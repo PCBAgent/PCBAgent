@@ -40,6 +40,7 @@ Parts you can call, with their pins:
 | Constructor | Pins | Set |
 |---|---|---|
 | `R`, `C`, `L`, `D` | `p`, `n` | `value` or, for `D`, `model` |
+| `S` | `ip`, `in`, `op`, `on` | `model` |
 | `V`, `I` | `p`, `n` | `dc_value` |
 | `SINEV`, `SINEI` | `p`, `n` | `amplitude`, `frequency` |
 | `PULSEV`, `PULSEI` | `p`, `n` | `initial_value`, `pulsed_value`, `pulse_width`, `period` |
@@ -48,7 +49,17 @@ Parts you can call, with their pins:
 | `E` (`VCVS`), `G` | `ip`, `in`, `op`, `on` | `gain` |
 | `F`, `H` | `p`, `n` | `control`, `gain` or `transresistance` |
 
-Connect the negative terminal of an independent source to `gnd`. Do not invent pin names beyond this table. For a vendor `.lib` subcircuit, load it with `Part(lib, name)` after appending its directory to `lib_search_paths[SPICE]`, then alias the pins from the symbol file before connecting them. ngspice often rejects unmodified PSPICE or LTspice libraries.
+Connect the negative terminal of an independent source to `gnd`. Do not invent pin names beyond this table. A switch or diode model is a `DeviceModel`, not a line of SPICE text. This switch is on while its gate is above 2.5 V:
+
+```python
+sw_model = DeviceModel("SW", "SW", Vt=2.5, Ron=0.01, Roff=1e6)
+S(model=sw_model)["ip", "in", "op", "on"] += gate, gnd, vin, switch
+D(model=DeviceModel("D", "D"))["p", "n"] += gnd, switch
+```
+
+Drive `gate` with `PULSEV`. A Python line that starts with `.model` is a syntax error. Fix that syntax. Do not delete the circuit and return the spec targets instead. The runner rejects a returned number that did not come from the analysis, including a simulated value multiplied back to the spec target. Return the node voltage, `sum(samples) / len(samples)` for a waveform, or the load voltage divided by the load resistance.
+
+For a vendor `.lib` subcircuit, load it with `Part(lib, name)` after appending its directory to `lib_search_paths[SPICE]`, then alias the pins from the symbol file before connecting them. ngspice often rejects unmodified PSPICE or LTspice libraries.
 
 A second circuit in the same process starts with `reset()`.
 

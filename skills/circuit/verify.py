@@ -15,21 +15,7 @@ from pathlib import Path
 MEASURED = ("output_voltage_v", "gain", "bandwidth_hz", "output_current_a")
 
 TIMEOUT_S = 600
-
-PROBE = """
-import importlib.util
-import json
-import sys
-
-spec = importlib.util.spec_from_file_location("skidl_sim", sys.argv[1])
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
-if not callable(getattr(module, "measure", None)):
-    sys.exit("skidl_sim.py does not define measure()")
-measurements = module.measure()
-with open(sys.argv[2], "w", encoding="utf-8") as handle:
-    json.dump(measurements, handle)
-"""
+PROBE = Path(__file__).with_name("probe.py")
 
 
 class NoResult(Exception):
@@ -71,7 +57,15 @@ def expected_checks(spec):
     return checks
 
 
+def circuit_dir(root):
+    root = Path(root).resolve()
+    if root.name == "design" and (root / "circuit-spec.json").is_file():
+        return root
+    return root / "design"
+
+
 def measure(design):
+    design = circuit_dir(design)
     sim = design / "skidl_sim.py"
     if not sim.is_file():
         raise NoResult(f"{sim} does not exist")
@@ -79,7 +73,7 @@ def measure(design):
         out = Path(scratch) / "measurements.json"
         try:
             proc = subprocess.run(
-                [sys.executable, "-c", PROBE, str(sim), str(out)],
+                [sys.executable, str(PROBE), str(sim), str(out)],
                 cwd=design,
                 capture_output=True,
                 text=True,
@@ -98,6 +92,7 @@ def measure(design):
 
 
 def run(design):
+    design = circuit_dir(design)
     spec = json.loads((design / "circuit-spec.json").read_text(encoding="utf-8"))
     checks = expected_checks(spec)
     if not checks:
@@ -129,9 +124,9 @@ def explain(result):
 
 def main():
     if len(sys.argv) != 2:
-        print("usage: verify.py <design-dir>", file=sys.stderr)
+        print("usage: verify.py designs/<slug>", file=sys.stderr)
         return 2
-    design = Path(sys.argv[1]).resolve()
+    design = circuit_dir(Path(sys.argv[1]))
     out = design / "simulation-results.json"
     try:
         results = run(design)

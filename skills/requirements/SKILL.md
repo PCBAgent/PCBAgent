@@ -8,7 +8,7 @@ description: Check a circuit spec for enough measurable detail before SKiDL. Use
 Write `circuit-spec.json` first, using only values the user stated. Then run:
 
 ```bash
-.venv/bin/python skills/requirements/check_spec.py designs/<slug>/circuit-spec.json
+.venv/bin/python skills/requirements/check_spec.py designs/<slug>/design/circuit-spec.json
 ```
 
 The script prints JSON. `missing` lists each field that is still too thin to test, with the question to ask.

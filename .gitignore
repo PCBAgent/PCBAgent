@@ -1,3 +1,4 @@
 skidl_REPL.log
 __pycache__/
-designs/*/skidl_REPL*
+**/skidl_REPL*
+.tools/jlcpcb/
