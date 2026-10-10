@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "kicad-schematic": {
+      "command": ".venv/bin/kicad-mcp",
+      "args": ["--editor-type", "schematic"],
+      "description": "KiCad schematic tools through the KiCad IPC API. KiCad must be open with the API server enabled."
+    },
+    "kicad-pcb": {
+      "command": ".venv/bin/kicad-mcp",
+      "args": ["--editor-type", "pcb"],
+      "description": "KiCad board tools through the KiCad IPC API. KiCad must be open with the API server enabled."
+    }
+  }
+}
