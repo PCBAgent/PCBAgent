@@ -2,11 +2,11 @@
 
 PCBAgent turns a natural-language circuit request into a SPICE-verified, real-parts-selected, placed, and routed board. The model does engineering reasoning. Deterministic tools simulate, check, place, route, and enforce design rules. The model does not emit board coordinates or traces.
 
-The project was first proposed as OfflineOhm. Running the whole flow on a local model, so a confidential design never leaves the machine, is still a goal. The work now is to prove the pipeline. The ASUS Ascent GX10, with Nemotron already installed, is the local model machine. This laptop is where the agent package is edited.
+The project was first proposed as OfflineOhm. Running the whole flow on a local model, so a confidential design never leaves the machine, is still a goal. The work now is to prove the pipeline on the ASUS Ascent GX10, over SSH. Nemotron is already installed there. There is no separate laptop workflow yet.
 
 ## Repository
 
-This repo is a Pi package. Pi itself is installed on each machine. Do not copy the Pi monorepo into this repo.
+This repo is a Pi package. Pi itself is installed on the GX10. Do not copy the Pi monorepo into this repo.
 
 | Path | Role |
 |---|---|
@@ -17,30 +17,51 @@ This repo is a Pi package. Pi itself is installed on each machine. Do not copy t
 | `skills/layout` | Constraints, placement, routing, design-rule checks. No placer or router yet |
 | `skills/circuit/schemas/` | Circuit spec and one simulation measurement |
 | `skills/layout/schemas/constraints.schema.json` | Placement constraints |
-| `prompts/design.md`, `prompts/verify.md` | `/design` and `/verify` |
+| `prompts/` | `/design`, `/verify`, `/parts`, `/layout` |
 | `requirements.txt`, `setup.sh` | SKiDL 2.3.0, KiCad MCP, Freerouting 2.5.0, Pi, and `uv` |
 | `.pi/mcp.json` | `kicad-schematic` and `kicad-pcb` |
 | `models.example.json` | Ollama endpoint for Nemotron |
 
-On this laptop, `./setup.sh` has been run. Pi 1.1.0, SKiDL, ngspice 45.2, KiCad 9.0.2, and the KiCad MCP server are installed. `source .venv/bin/activate` sets `KICAD9_SYMBOL_DIR` and puts `kicad-cli` on `PATH`.
+Development is an SSH session on the GX10. Run `./setup.sh` in this checkout there. `source .venv/bin/activate` sets `KICAD9_SYMBOL_DIR` and puts `kicad-cli` on `PATH`. `~/.pi/agent/models.json` uses `baseUrl` `http://127.0.0.1:11434/v1` and the Nemotron id from `ollama list`.
 
-## Division of work
+## Design flow
 
-| Task | Model | Tool |
-|---|---|---|
-| Interpret the specification | yes | |
-| Choose the circuit architecture | yes | |
-| Write SKiDL | yes | |
-| Write layout constraints | yes | |
-| Pick candidate parts | yes | |
-| Run ngspice | | yes |
-| Judge the measurement against the spec | | yes |
-| Place parts | | yes |
-| Check geometry | | yes |
-| Route | | yes |
-| Design-rule check | | yes |
+A design starts from a natural-language request in `pi` on the GX10. Three stages run in order. A later stage starts when the user runs its command, and only after the previous stage has passed. The model writes engineering intent. Tools simulate, judge, place, route, and check. The model does not emit board coordinates or traces, and it does not claim a tool ran when this package has no runner for it.
 
-A simulation failure comes back as JSON, not as raw simulator text:
+Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage regulators, sensor interfaces, analog filters, and simple microcontroller peripherals. The long-term request is a compact USB environmental sensor (temperature, humidity, pressure) on I2C.
+
+### Example
+
+```text
+/design 5 V to 3.3 V switching regulator, at least 2 A, small board, JLCPCB parts
+```
+
+Read the SKiDL. The runner writes the simulation-result JSON. If any status is `fail`:
+
+```text
+/verify
+```
+
+Repeat `/verify` after each new run until every status is `pass`. Skip `/verify` when the run already passed. Then:
+
+```text
+/parts
+/layout
+```
+
+`/design` does not select the JLCPCB parts named in that sentence. `/parts` does, after the circuit passes. `/layout` writes constraints, then stops at the first missing tool.
+
+### 1. Circuit
+
+`/design` takes the request.
+
+1. The model writes a circuit spec that validates against `skills/circuit/schemas/circuit-spec.schema.json`. The spec keeps the original prompt and the acceptance numbers: supply and output voltage, gain, bandwidth, current, load, interfaces, preferred parts, package limits, board size, and manufacturing constraints.
+2. The model chooses the architecture and writes one SKiDL simulation file, using `from skidl.pyspice import *`. It does not hand-write a SPICE deck.
+3. The model writes the test list. Each measured requirement will be one object matching `skills/circuit/schemas/simulation-result.schema.json`.
+
+`/design` stops there. It does not select catalog parts or emit coordinates.
+
+The runner, once it exists, executes that file with `.venv/bin/python`, calls ngspice, and writes an array of simulation results. The tool compares each measurement with the spec and sets `status`. Simulator exit alone is not a pass. The model does not judge the numbers.
 
 ```json
 {
@@ -52,19 +73,28 @@ A simulation failure comes back as JSON, not as raw simulator text:
 }
 ```
 
-The repair changes the SKiDL. It does not change the requirement to hide a failure.
+A failure re-enters through `/verify`. The model changes the SKiDL so the same tests pass. It does not change the spec to hide a failure. The runner repeats until every status is pass. That ends the circuit stage. A SPICE pass does not establish footprint mapping, placement, or routing.
 
-## Pipeline
+### 2. Parts
 
-1. **Specification to circuit.** Natural language becomes `circuit-spec.schema.json`, then a `skidl.pyspice` file. Inputs include supply and output voltage, gain, bandwidth, current, load, interfaces, preferred parts, package limits, board size, and manufacturing constraints.
-2. **Verification.** ngspice measures the spec. Failures re-enter step 1.
-3. **Real parts.** A passing circuit maps to a cached JLCPCB catalog: manufacturer part number, value, tolerance, voltage, current, power, package, stock, price, and preferred or basic status, plus a KiCad symbol and footprint.
-4. **Constraints.** The model writes proximity, grouping, edge, keep-out, separation, loop-area, high-current, differential-pair, and orientation constraints. Weight is relative importance. `hard` means a violation is illegal.
-5. **Placement.** A cost over wire length, overlap, constraint violations, board area, and loop area chooses coordinates. First candidate is force-directed initialization, then simulated annealing.
-6. **Routing.** Freerouting 2.5.0 is the autorouter. KiCad exports a Specctra `.dsn`. `freerouting-cli -de board.dsn -do board.ses` writes a session, and KiCad imports it. Trace width, clearance, vias, layers, differential pairs, high-current nets, and shop rules still have to be expressed in that design. The board opens in KiCad.
-7. **Board checks.** Design rules, electrical rules, unrouted nets, footprints, clearance, board edge, and shop constraints. Failures go back to the placer or the constraint list.
+`/parts` starts this stage, from a circuit with passing simulation results.
 
-Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage regulators, sensor interfaces, analog filters, and simple microcontroller peripherals. The example request is a 5 V to 3.3 V switching regulator, at least 2 A, small board, JLCPCB parts. The long-term request is a compact USB environmental sensor (temperature, humidity, pressure) on I2C.
+The model replaces ideal parts with real ones from a cached JLCPCB catalog. For each part it records the manufacturer part number, value, tolerance, voltage, current, power, package, stock, price, and preferred or basic status, plus a KiCad symbol and footprint. It does not invent stock, price, or footprint names. No catalog is in this package yet.
+
+A second SKiDL file, separate from the simulation file, uses `from skidl import *` and `set_default_tool(KICAD)` and emits the KiCad netlist. `ERC()` runs before `generate_netlist(tool=KICAD)`. A missing footprint aborts that netlist. If a selected part changes a value the spec measures, the circuit stage runs again, with device models that match the selected parts.
+
+### 3. Layout
+
+`/layout` starts this stage, after part selection.
+
+1. The model writes placement constraints that validate against `skills/layout/schemas/constraints.schema.json`: proximity, grouping, edge, keep-out, separation, loop area, high-current paths, differential pairs, and orientation. `weight` is relative importance. `hard` means a violation is illegal. The model does not assign coordinates or draw traces.
+2. The placer chooses coordinates. Its cost covers wire length, overlap, constraint violations, board area, and loop area. The first candidate is force-directed initialization, then simulated annealing. No placer is in this package yet.
+3. KiCad exports a Specctra `.dsn`. `freerouting-cli -de board.dsn -do board.ses` writes a session, and KiCad imports it. Trace width, clearance, vias, layers, differential pairs, high-current nets, and shop rules still have to be expressed in that design. The Freerouting binary is installed. Nothing in this package calls it yet.
+4. Design-rule, electrical-rule, unrouted-net, footprint, clearance, board-edge, and shop checks run on the imported board. A failure goes back to the placer or to the constraint list. No checker is in this package yet.
+
+If a step has no tool, the stage stops and names the file that step would read.
+
+`kicad-schematic` and `kicad-pcb` connect only while KiCad is open with its API server enabled. They inspect and edit the open board. They are not the placer or the router. SKiDL can see the KiCad 9 symbols. It does not yet see a footprint library table. That table is part of part selection, not part of the SPICE milestone.
 
 ## Milestone
 
@@ -76,14 +106,10 @@ Natural-language specification, generated circuit, automated SPICE verification.
 
 Do these in order. Do not start placement or routing until the milestone holds on more than one circuit.
 
-1. Give this laptop a model. Copy `models.example.json` to `~/.pi/agent/models.json` and point it at the GX10 Ollama URL, or run `/login` for a hosted provider. Set the model id from `ollama list`.
-2. Run `source .venv/bin/activate && pi` in this checkout, trust the project, and send `/design` with the regulator sentence. Read the SKiDL before treating it as success.
-3. Add a runner the `circuit` skill can call. It runs the pyspice file under `.venv/bin/python`, calls ngspice, and writes an array of simulation-result objects. `/verify` reads that file.
-4. Repeat the regulator, then one amplifier or filter, and record whether the SKiDL is syntactically valid, electrically valid, connected correctly, and accepted by ngspice.
-5. Push this repo and clone it on the GX10. Run `./setup.sh` there, point `models.json` at `http://127.0.0.1:11434/v1`, and repeat one `/design` against Nemotron.
-6. After that loop is reliable: JLCPCB cache and footprint assignment, then the constraint schema against a real netlist, then a small placer and a KiCad export, then Freerouting on the exported `.dsn`, then the design-rule check on the imported `.ses`.
-
-KiCad's MCP servers connect only while KiCad is open with its API server enabled. SKiDL can see the KiCad 9 symbols. It does not yet see a footprint library table. That table is part of part selection, not part of the SPICE milestone.
+1. On the GX10, run `./setup.sh`, point `~/.pi/agent/models.json` at `http://127.0.0.1:11434/v1` with the id from `ollama list`, then `source .venv/bin/activate && pi`. Trust the project and send `/design` with the regulator sentence. Read the SKiDL before treating it as success.
+2. Add a runner the `circuit` skill can call. It runs the pyspice file under `.venv/bin/python`, calls ngspice, and writes an array of simulation-result objects. `/verify` reads that file.
+3. Repeat the regulator, then one amplifier or filter, and record whether the SKiDL is syntactically valid, electrically valid, connected correctly, and accepted by ngspice.
+4. After that loop is reliable: JLCPCB cache and footprint assignment, then the constraint schema against a real netlist, then a small placer and a KiCad export, then Freerouting on the exported `.dsn`, then the design-rule check on the imported `.ses`.
 
 ## Open questions
 

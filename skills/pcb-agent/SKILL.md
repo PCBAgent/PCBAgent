@@ -9,8 +9,8 @@ Use the model for engineering intent. Use tools for simulation, placement, routi
 
 Pipeline, in order:
 
-1. `circuit` — specification, then a SKiDL simulation file (`skidl`), then ngspice. This is the current milestone.
-2. `parts` — map a passing circuit to real parts, symbols, and footprints.
-3. `layout` — placement constraints, placement, routing, and design-rule checks.
+1. `circuit` — `/design`, then ngspice, then `/verify` when a result fails. This is the current milestone.
+2. `parts` — `/parts`, after verification passes.
+3. `layout` — `/layout`, after part selection.
 
-Load the skill for the stage you are in. Do not start a later stage until the user asks, and do not claim a tool ran when this package has no runner for it.
+Load the skill for the stage you are in. Do not start a later stage until the user runs its command, and do not claim a tool ran when this package has no runner for it.
