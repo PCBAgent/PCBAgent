@@ -1,0 +1,18 @@
+# Local repositories and editor history
+/repo-staging/
+/.history/
+
+# Python caches and downloaded third-party tools
+__pycache__/
+*.py[cod]
+/tools/freerouting/
+
+# KiCad local state, locks, and auto-created companion projects
+*.kicad_prl
+~*.lck
+/astra-bldc-playback.kicad_pro
+/astra-bldc-freerouted.kicad_pro
+
+# Runtime markers
+/.astra-demo-status
+/.astra-demo-error

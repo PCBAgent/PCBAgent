@@ -1,0 +1,23 @@
+Reference,Value,Footprint,Purpose
+J1,POWER IN 12V,TerminalBlock_2_P5.08mm,12 V power input
+F1,2A RESETTABLE,Fuse_1206_3216Metric,Input overcurrent protection
+D1,SMBJ18A TVS,D_SMA,Input transient clamp
+C1,100uF 25V,CP_Elec_8x10.2,Decoupling / bias network
+C2,100nF,C_0603_1608Metric,Decoupling / bias network
+U1,R-78E3.3-0.5,Converter_DCDC_RECOM_R-78E-0.5_THT,3.3 V logic regulator
+C3,10uF,C_0805_2012Metric,Decoupling / bias network
+U2,STM32G031K8Tx,LQFP-32_7x7mm_P0.8mm,Motor-control MCU
+U3,DRV8313PWP,HTSSOP-28-1EP_4.4x9.7mm_P0.65mm,Three-phase motor driver
+C4,100nF,C_0603_1608Metric,Decoupling / bias network
+C5,10uF 25V,C_0805_2012Metric,Decoupling / bias network
+R1,10k,R_0603_1608Metric,Decoupling / bias network
+R2,10k,R_0603_1608Metric,Decoupling / bias network
+R3,1k,R_0603_1608Metric,Decoupling / bias network
+D2,GREEN,LED_0603_1608Metric,Status indicator
+RV1,10k SPEED,Potentiometer_Alps_RK09K_Single_Horizontal,Speed command
+J2,MOTOR A B C,TerminalBlock_3_P5.08mm,BLDC phase output
+J3,HALL SENSORS,PinHeader_1x05_P2.54mm_Vertical,Hall sensor interface
+J4,SWD,PinHeader_1x05_P2.54mm_Vertical,SWD programming/debug
+R4,10k,R_0603_1608Metric,Decoupling / bias network
+R5,10k,R_0603_1608Metric,Decoupling / bias network
+C6,100nF,C_0603_1608Metric,Decoupling / bias network
