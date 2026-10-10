@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pcb-agent.local/schemas/simulation-result.schema.json",
+  "title": "Simulation result",
+  "description": "One measured requirement from ngspice. The repair loop consumes an array of these objects.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["requirement", "target", "measured", "tolerance", "status"],
+  "properties": {
+    "requirement": {
+      "type": "string",
+      "description": "Name of the spec field or derived check, such as output_voltage."
+    },
+    "target": { "type": "number" },
+    "measured": { "type": "number" },
+    "tolerance": {
+      "type": "number",
+      "description": "Allowed absolute error around target."
+    },
+    "status": {
+      "enum": ["pass", "fail"]
+    }
+  }
+}

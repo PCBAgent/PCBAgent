@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pcb-agent.local/schemas/circuit-spec.schema.json",
+  "title": "Circuit specification",
+  "description": "Requirements derived from a natural-language circuit request. SKiDL generation and ngspice tests read this file.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["prompt"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "description": "Original natural-language specification."
+    },
+    "supply_voltage_v": { "type": "number" },
+    "output_voltage_v": { "type": "number" },
+    "gain": { "type": "number" },
+    "bandwidth_hz": { "type": "number" },
+    "output_current_a": { "type": "number" },
+    "load": { "type": "string" },
+    "interfaces": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "preferred_components": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "package_restrictions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "board_max_mm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "width": { "type": "number" },
+        "height": { "type": "number" }
+      }
+    },
+    "manufacturing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "vendor": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

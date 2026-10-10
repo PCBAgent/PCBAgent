@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pcb-agent.local/schemas/constraints.schema.json",
+  "title": "Placement constraints",
+  "description": "Semantic layout intent for the placer. The model writes this. The placer chooses coordinates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["constraints"],
+  "properties": {
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "enum": [
+              "proximity",
+              "board_edge",
+              "group",
+              "keepout",
+              "separation",
+              "loop_area",
+              "high_current",
+              "differential_pair",
+              "orientation"
+            ]
+          },
+          "components": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Reference designators, such as U1 or C3."
+          },
+          "component": { "type": "string" },
+          "max_distance_mm": { "type": "number" },
+          "preferred_edge": {
+            "enum": ["left", "right", "top", "bottom"]
+          },
+          "weight": {
+            "type": "number",
+            "description": "Relative importance. Higher is stricter."
+          },
+          "hard": {
+            "type": "boolean",
+            "description": "When true, a violation is illegal. When false or omitted, it adds cost."
+          }
+        }
+      }
+    }
+  }
+}
