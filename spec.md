@@ -8,21 +8,26 @@ The project was first proposed as OfflineOhm. Running the whole flow on a local 
 
 This repo is a Pi package. Pi itself is installed on the GX10. Do not copy the Pi monorepo into this repo.
 
-| Path | Role |
-|---|---|
-| `skills/pcb-agent` | Stage order and the rule that later stages wait until asked |
-| `skills/circuit` | Spec, SKiDL simulation file, ngspice repair loop |
-| `skills/skidl` | How to write SKiDL. Simulation files use `skidl.pyspice`. A KiCad netlist is a separate file |
-| `skills/parts` | Local JLCPCB cache, lookup, and KiCad netlist runner |
-| `skills/layout` | Constraints, placement, routing, design-rule checks. No placer or router yet |
-| `skills/circuit/verify.py` | Simulation runner: runs `measure()` in `skidl_sim.py`, judges each result, writes `simulation-results.json` |
-| `skills/circuit/schemas/` | Circuit spec and one simulation measurement |
-| `tests/` | Runner contract. A design is checked with `pytest --design designs/<slug>` |
-| `skills/layout/schemas/constraints.schema.json` | Placement constraints |
-| `prompts/` | `/design`, `/parts`, `/layout` |
-| `requirements.txt`, `setup.sh` | SKiDL 2.3.0, KiCad MCP, Freerouting 2.5.0, Pi, and `uv` |
-| `.pi/mcp.json` | `kicad-schematic` and `kicad-pcb` |
-| `models.example.json` | Ollama endpoint for Nemotron |
+
+| Path                                            | Role                                                                                                                            |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `skills/pcb-agent`                              | Stage order and the rule that later stages wait until asked                                                                     |
+| `skills/circuit`                                | Spec, SKiDL simulation file, ngspice repair loop                                                                                |
+| `skills/skidl`                                  | How to write SKiDL. Simulation files use `skidl.pyspice`. A KiCad netlist is a separate file                                    |
+| `skills/parts`                                  | Local JLCPCB cache, lookup, and KiCad netlist runner                                                                            |
+| `skills/layout`                                 | Constraints, placement, routing, design-rule checks                                                                             |
+| `skills/layout/layout.py`                       | Layout runner: places, builds the KiCad board, routes with Freerouting, runs DRC and routed checks, writes `layout/report.json` |
+| `skills/layout/place.py`                        | Netlist reader, constraint checks, force-directed and simulated-annealing placer                                                |
+| `skills/layout/kicad.py`                        | KiCad steps through `pcbnew`: footprint geometry, board build, rules and `.dsn` export, `.ses` import                           |
+| `skills/circuit/verify.py`                      | Simulation runner: runs `measure()` in `skidl_sim.py`, judges each result, writes `simulation-results.json`                     |
+| `skills/circuit/schemas/`                       | Circuit spec and one simulation measurement                                                                                     |
+| `tests/`                                        | Runner contracts for circuit, parts, and layout. A design is checked with `pytest --design designs/<slug>`                      |
+| `skills/layout/schemas/constraints.schema.json` | Placement constraints                                                                                                           |
+| `prompts/`                                      | `/design`, `/parts`, `/layout`                                                                                                  |
+| `requirements.txt`, `setup.sh`                  | SKiDL 2.3.0, KiCad MCP, Freerouting 2.5.0, Pi, and `uv`                                                                         |
+| `.pi/mcp.json`                                  | `kicad-schematic` and `kicad-pcb`                                                                                               |
+| `models.example.json`                           | Ollama endpoint for Nemotron                                                                                                    |
+
 
 Development is an SSH session on the GX10. Run `./setup.sh` in this checkout there. `source .venv/bin/activate` sets `KICAD_SYMBOL_DIR` from the installed KiCad and puts `kicad-cli` on `PATH`. `~/.pi/agent/models.json` uses `baseUrl` `http://127.0.0.1:11434/v1` and the Nemotron id from `ollama list`.
 
@@ -35,7 +40,7 @@ Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage 
 ### Example
 
 ```text
-/design 5 V to 3.3 V switching regulator, output 3.3 V within 0.05 V, at least 2 A within 0.1 A into a 1.65 ohm load, maximum board size 25 mm by 20 mm, JLCPCB
+/design 5 V supply to 3.3 V buck regulator using one buck regulator IC, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 25 mm by 20 mm, JLCPCB
 ```
 
 `/design` writes the SKiDL, runs the tests against that design's `circuit-spec.json`, and revises the SKiDL when a measurement misses. Then:
@@ -45,7 +50,7 @@ Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage 
 /layout
 ```
 
-`/design` does not select the JLCPCB parts named in that sentence. `/parts` does, after the circuit passes. `/layout` writes constraints, then stops at the first missing tool.
+`/design` does not select the JLCPCB parts named in that sentence. `/parts` does, after the circuit passes. `/layout` writes constraints, then places, routes, and checks the board.
 
 ### 1. Circuit
 
@@ -79,12 +84,12 @@ A failure stays inside `/design`. The model reads why the measurement missed and
 
 `/layout` starts this stage, after part selection. It reads `designs/<slug>/design/` and `designs/<slug>/parts/`, and writes `designs/<slug>/layout/`.
 
-1. The model writes placement constraints that validate against `skills/layout/schemas/constraints.schema.json`: proximity, grouping, edge, keep-out, separation, loop area, high-current paths, differential pairs, and orientation. `weight` is relative importance. `hard` means a violation is illegal. The model does not assign coordinates or draw traces.
-2. The placer chooses coordinates. Its cost covers wire length, overlap, constraint violations, board area, and loop area. The first candidate is force-directed initialization, then simulated annealing. No placer is in this package yet.
-3. KiCad exports a Specctra `.dsn`. `freerouting-cli -de board.dsn -do board.ses` writes a session, and KiCad imports it. Trace width, clearance, vias, layers, differential pairs, high-current nets, and shop rules still have to be expressed in that design. The Freerouting binary is installed. Nothing in this package calls it yet.
-4. Design-rule, electrical-rule, unrouted-net, footprint, clearance, board-edge, and shop checks run on the imported board. A failure goes back to the placer or to the constraint list. No checker is in this package yet.
+1. The model writes placement constraints that validate against `skills/layout/schemas/constraints.schema.json`: proximity, grouping, edge, keep-out, separation, loop area, high-current paths, differential pairs, and orientation. Constraints name parts by reference designator and nets by name. Distances are courtyard gaps. Edges are relative to the board outline, which is the placement's bounding box plus the edge clearance. `weight` is relative importance. `hard` means a violation is illegal. An optional `rules` object sets track width, clearance, vias, edge clearance, and the gap between parts; the defaults fit a JLCPCB 2-layer board. The model does not assign coordinates or draw traces.
+2. `/layout` runs `.venv/bin/python skills/layout/layout.py designs/<slug>`. The runner rejects constraints that fail the schema or name a part or net missing from `board.net`. It reads each footprint's courtyard and pads from the installed KiCad libraries. The placer chooses coordinates and rotations. Its cost covers wire length, overlap, constraint violations, board area against `board_max_mm` from the circuit spec, and loop area. It starts force-directed, then runs simulated annealing.
+3. KiCad builds `layout/placed.kicad_pcb` with the nets, outline, design rules, and one netclass per `high_current` width, then exports `layout/board.dsn`. The runner removes component outlines from that file, because the Freerouting 2.5.0 native build crashes on them. `freerouting-cli -de board.dsn -do board.ses` routes with the board's copper-to-edge clearance. KiCad imports the session as `layout/board.kicad_pcb`.
+4. `kicad-cli pcb drc` checks design rules, clearance, the board edge, footprints, and unrouted nets on the imported board. The runner also checks each `high_current` net's routed width, allowing narrower copper within 1 mm of its own pads, and each `differential_pair` length skew. DRC errors, unrouted nets, and failed checks fail the board. DRC warnings are reported only.
 
-If a step has no tool, the stage stops and names the file that step would read.
+A failed attempt goes back to the placer, with a new seed and more room between parts that no proximity or group constraint ties together. After four attempts the runner keeps the best attempt and writes `layout/report.json`. Exit 0 is a passing board. Exit 1 sets `return_to: "constraints"` with the reasons, and `/layout` revises `constraints.json` and runs again. Exit 2 means no board: a missing input, an invalid constraint, or a missing tool.
 
 `kicad-schematic` and `kicad-pcb` connect only while KiCad is open with its API server enabled. They inspect and edit the open board. They are not the placer or the router. Part selection copies a KiCad 10 symbol and footprint from the installed libraries when the catalog package matches a footprint file.
 
@@ -101,16 +106,20 @@ Already implemented:
 - **Machine.** `./setup.sh`, `.venv`, and Pi. `~/.pi/agent/models.json` uses `http://127.0.0.1:11434/v1` and `nemotron-3-super:latest`. KiCad 10.0.7 is installed with its symbol and footprint libraries. Freerouting 2.5.0 for Linux ARM64 is in `.tools/freerouting`. `.pi/mcp.json` starts `kicad-schematic` and `kicad-pcb` while KiCad is open with the API server enabled.
 - **Circuit.** Each request is `designs/<slug>/design/`. The requirements check blocks SKiDL until the spec has measurable numbers. `/design` writes `circuit-spec.json` and `skidl_sim.py` there, then runs `.venv/bin/python -m pytest tests/test_verify.py --design designs/<slug>`. `skills/circuit/verify.py` calls `measure()`, writes `simulation-results.json` in that same folder, and on a miss prints the measured value, the target, and whether the result is high or low. A returned number that did not come from ngspice is not a result. `/design` revises `skidl_sim.py` until pytest exits 0. A plain pytest run does not sweep `designs/`. The regulator sentence has passed that loop, and so has one other circuit.
 - **Parts.** `/parts` reads `designs/<slug>/design/` and writes `designs/<slug>/parts/parts.json` from the local JLCPCB cache. `skills/parts/netlist.py` runs `parts/skidl_kicad.py` and writes `parts/board.net`. Stock, price, and footprint names come from the cache and the installed KiCad libraries.
-- **Layout.** `/layout` reads `design/` and `parts/`. It writes `designs/<slug>/layout/constraints.json` against `skills/layout/schemas/constraints.schema.json`. The schema covers proximity, grouping, edge, keep-out, separation, loop area, and the other placement rules. `/layout` stops when the next tool is missing.
+- **Layout.** `/layout` reads `design/` and `parts/`, writes `designs/<slug>/layout/constraints.json`, and runs `skills/layout/layout.py`. The runner places, builds the KiCad board, routes it with Freerouting, imports the session, runs DRC and the routed-width and skew checks, retries the placer, and writes `layout/report.json`. `tests/test_layout.py` covers the constraints, the placer, and an end-to-end LDO board from a SKiDL netlist that places, routes with no unrouted nets, and passes DRC.
 
 Still to build, in pipeline order:
 
-1. **Layout.** Add a placer that reads `designs/<slug>/layout/constraints.json` and `designs/<slug>/parts/board.net` and assigns coordinates. Its cost covers wire length, overlap, constraint violations, board area, and loop area, from a force-directed start and then simulated annealing. Export a Specctra `.dsn`, run `freerouting-cli -de board.dsn -do board.ses`, and import the session. Then check design rules, electrical rules, unrouted nets, footprints, clearance, and the board edge. A failure goes back to the placer or to the constraint list.
+1. **Layout on a real design.** Run `/layout` on the regulator after `/parts` writes its `board.net`, and on one more circuit. Record whether the model's constraints are valid on the first try and how many runs it takes to pass.
+2. **Manufacturing output.** Gerbers, drill files, BOM, and the position file from `board.kicad_pcb` with `kicad-cli pcb export`, in the shop's format.
+
+
 
 ## Open questions
 
 - Which constraint types are required, and which can wait?
 - When is a constraint hard, and what happens when two hard constraints conflict?
-- Do constraints name parts, nets, functional blocks, or all three?
+- Constraints name parts and nets. Should they also name functional blocks?
 - Does a simple placer get good enough once the constraints are good?
-- Which unrouted or rule-breaking Freerouting results go back to the placer, and which go back to the constraint list?
+- The runner sends every failure back to the placer up to four times, then to the constraint list. Should some DRC errors, such as a footprint problem, go straight to `/parts` instead?
+

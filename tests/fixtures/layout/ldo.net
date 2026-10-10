@@ -1,0 +1,293 @@
+(export 
+  (version "D")
+  (design
+    (source "net.py")
+    (date "10/10/2026 04:10 PM")
+    (tool "SKiDL (2.3.0)")
+    (sheet
+      (number 1)
+      (name "/")
+      (tstamps "/")
+      (title_block
+        (title)
+        (company)
+        (rev)
+        (date)
+        (source "net.py")
+        (comment
+          (number "1")
+          (value ""))
+        (comment
+          (number "2")
+          (value ""))
+        (comment
+          (number "3")
+          (value ""))
+        (comment
+          (number "4")
+          (value ""))
+        (comment
+          (number "5")
+          (value ""))
+        (comment
+          (number "6")
+          (value ""))
+        (comment
+          (number "7")
+          (value ""))
+        (comment
+          (number "8")
+          (value ""))
+        (comment
+          (number "9")
+          (value "")))))
+  (components
+    (comp
+      (ref "C1")
+      (value "1uF")
+      (description "Unpolarized capacitor")
+      (footprint "Capacitor_SMD:C_0805_2012Metric")
+      (fields
+        (field
+          (name "Description") "Unpolarized capacitor")
+        (field
+          (name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "mQADbGY5dJ")
+        (field
+          (name "SKiDL Line") "net.py:6"))
+      (libsource
+        (lib "Device")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "8f44e431-2af4-5d4d-9fc4-aff1c377e086"))
+    (comp
+      (ref "C2")
+      (value "1uF")
+      (description "Unpolarized capacitor")
+      (footprint "Capacitor_SMD:C_0805_2012Metric")
+      (fields
+        (field
+          (name "Description") "Unpolarized capacitor")
+        (field
+          (name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "To8xQfKkOr")
+        (field
+          (name "SKiDL Line") "net.py:7"))
+      (libsource
+        (lib "Device")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "74f46f93-6089-5252-a4b5-f15750038d8e"))
+    (comp
+      (ref "D1")
+      (value "LED")
+      (description "Light emitting diode")
+      (footprint "LED_SMD:LED_0805_2012Metric")
+      (fields
+        (field
+          (name "Description") "Light emitting diode")
+        (field
+          (name "Footprint") "LED_SMD:LED_0805_2012Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "whUb9zWbKi")
+        (field
+          (name "SKiDL Line") "net.py:9"))
+      (libsource
+        (lib "Device")
+        (part "LED"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "edc08a90-85eb-54f9-ac7f-b340a3db23c2"))
+    (comp
+      (ref "J1")
+      (value "Conn_01x02")
+      (description "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)")
+      (footprint "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
+      (fields
+        (field
+          (name "Description") "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)")
+        (field
+          (name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "XO9lbMhHQ7")
+        (field
+          (name "SKiDL Line") "net.py:3"))
+      (libsource
+        (lib "Connector_Generic")
+        (part "Conn_01x02"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "e4567e0a-e15f-5972-b419-cbf58d5f6c00"))
+    (comp
+      (ref "J2")
+      (value "Conn_01x02")
+      (description "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)")
+      (footprint "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
+      (fields
+        (field
+          (name "Description") "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)")
+        (field
+          (name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "r_hooy3nyW")
+        (field
+          (name "SKiDL Line") "net.py:4"))
+      (libsource
+        (lib "Connector_Generic")
+        (part "Conn_01x02"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "b08f7e71-2ae2-5439-8f9e-037a2089c3b6"))
+    (comp
+      (ref "R1")
+      (value "1k")
+      (description "Resistor")
+      (footprint "Resistor_SMD:R_0805_2012Metric")
+      (fields
+        (field
+          (name "Description") "Resistor")
+        (field
+          (name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "zHI59QYCyB")
+        (field
+          (name "SKiDL Line") "net.py:8"))
+      (libsource
+        (lib "Device")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "456ac286-40ef-5587-a8a2-5b103b0fb393"))
+    (comp
+      (ref "U1")
+      (value "AP2112K-3.3")
+      (description "600mA low dropout linear regulator, with enable pin, 3.8V-6V input voltage range, 3.3V fixed positive output, SOT-23-5")
+      (footprint "Package_TO_SOT_SMD:SOT-23-5")
+      (fields
+        (field
+          (name "Description") "600mA low dropout linear regulator, with enable pin, 3.8V-6V input voltage range, 3.3V fixed positive output, SOT-23-5")
+        (field
+          (name "Footprint") "Package_TO_SOT_SMD:SOT-23-5")
+        (field
+          (name "Datasheet") "https://www.diodes.com/assets/Datasheets/AP2112.pdf")
+        (field
+          (name "SKiDL Tag") "hGZ6aF0jp5")
+        (field
+          (name "SKiDL Line") "net.py:5"))
+      (libsource
+        (lib "Regulator_Linear")
+        (part "AP2112K-3.3"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "8feba7f1-83f0-5f3f-ab79-b804f76f92ba")))
+  (nets
+    (net
+      (code 1)
+      (name "GND")
+      (class "Default")
+      (node
+        (ref "C1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "C2")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "D1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "2")
+        (pintype "POWER-IN")))
+    (net
+      (code 2)
+      (name "LED_A")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R1")
+        (pin "2")
+        (pintype "PASSIVE")))
+    (net
+      (code 3)
+      (name "VIN")
+      (class "Default")
+      (node
+        (ref "C1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "1")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U1")
+        (pin "3")
+        (pintype "INPUT")))
+    (net
+      (code 4)
+      (name "VOUT")
+      (class "Default")
+      (node
+        (ref "C2")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "5")
+        (pintype "POWER-OUT")))))

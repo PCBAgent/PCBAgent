@@ -13,6 +13,6 @@ Pipeline, in order:
 2. `parts` — `/parts`, after verification passes.
 3. `layout` — `/layout`, after part selection.
 
-Each request gets one directory, `designs/<slug>/`. `<slug>` is a short kebab-case name, such as `buck-5v-3v3`. The design step writes `designs/<slug>/design/`. The parts step reads that folder and writes `designs/<slug>/parts/`. Layout reads both and writes `designs/<slug>/layout/`. Do not write design files in the repository root or the home directory. Reuse the existing directory when the request already has one.
+Each request gets one directory, `designs/<slug>/`. `<slug>` is a short kebab-case name taken from the specification, such as `buck-5v-3v3`. The design step writes `designs/<slug>/design/`. The parts step reads that folder and writes `designs/<slug>/parts/`. Layout reads both and writes `designs/<slug>/layout/`. Do not write design files in the repository root or the home directory. Reuse the existing directory when the request already has one.
 
 Load the skill for the stage you are in. Do not start a later stage until the user runs its command, and do not claim a tool ran when this package has no runner for it.

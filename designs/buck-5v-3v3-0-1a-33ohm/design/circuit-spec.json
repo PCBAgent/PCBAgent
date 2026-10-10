@@ -1,0 +1,19 @@
+{
+  "prompt": "5 V supply to 3.3 V buck regulator using one buck regulator IC, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 25 mm by 20 mm, JLCPCB",
+  "supply_voltage_v": 5,
+  "output_voltage_v": 3.3,
+  "output_current_a": 0.1,
+  "load": "33 ohm",
+  "tolerances": {
+    "output_voltage_v": 0.05,
+    "output_current_a": 0.01
+  },
+  "board_max_mm": {
+    "width": 25,
+    "height": 20
+  },
+  "manufacturing": {
+    "vendor": "JLCPCB",
+    "notes": ""
+  }
+}

@@ -1,0 +1,12 @@
+ERC WARNING: Insufficient drive current on net 5V for pin POWER-IN pin 1/VIN of XL1509-ADJ/U1.
+ERC WARNING: Insufficient drive current on net GND for pin POWER-IN pin 5/GND of XL1509-ADJ/U1.
+ERC WARNING: No pins attached to net FB.
+ERC WARNING: No drivers for net FB.
+ERC WARNING: No pins attached to net SW.
+ERC WARNING: No drivers for net SW.
+ERC WARNING: Unconnected pin: POWER-OUT pin 2/OUT of XL1509-ADJ/U1.
+ERC WARNING: Unconnected pin: INPUT pin 3/FB of XL1509-ADJ/U1.
+ERC WARNING: Unconnected pin: INPUT pin 4/~{EN} of XL1509-ADJ/U1.
+ERC INFO: 9 warnings found while running ERC.
+ERC INFO: 0 errors found while running ERC.
+

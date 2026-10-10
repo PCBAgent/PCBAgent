@@ -2,11 +2,29 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pcb-agent.local/schemas/constraints.schema.json",
   "title": "Placement constraints",
-  "description": "Semantic layout intent for the placer. The model writes this. The placer chooses coordinates.",
+  "description": "Semantic layout intent for the placer. The model writes this. The placer chooses coordinates. Distances between parts are gaps between their courtyards, in millimeters. The board outline is the placement's bounding box plus the edge clearance, so edges are relative to where the parts end up.",
   "type": "object",
   "additionalProperties": false,
   "required": ["constraints"],
   "properties": {
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Board design rules. Omitted fields use the defaults in skills/layout/place.py, which fit a JLCPCB 2-layer board.",
+      "properties": {
+        "track_width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "min_track_width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "clearance_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "via_diameter_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "via_drill_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "edge_clearance_mm": { "type": "number", "minimum": 0 },
+        "part_gap_mm": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Minimum gap between any two courtyards, left for routing."
+        }
+      }
+    },
     "constraints": {
       "type": "array",
       "items": {
@@ -32,20 +50,110 @@
             "items": { "type": "string" },
             "description": "Reference designators, such as U1 or C3."
           },
-          "component": { "type": "string" },
-          "max_distance_mm": { "type": "number" },
+          "component": {
+            "type": "string",
+            "description": "One reference designator. Same as a one-item components list."
+          },
+          "from": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "separation: the second set of reference designators."
+          },
+          "nets": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Net names from board.net. high_current and differential_pair use them."
+          },
+          "max_distance_mm": {
+            "type": "number",
+            "minimum": 0,
+            "description": "proximity and group: largest courtyard gap allowed between listed parts. board_edge: largest gap to the board edge."
+          },
+          "min_distance_mm": {
+            "type": "number",
+            "minimum": 0,
+            "description": "separation: smallest courtyard gap allowed between components and from."
+          },
           "preferred_edge": {
-            "enum": ["left", "right", "top", "bottom"]
+            "enum": ["left", "right", "top", "bottom"],
+            "description": "board_edge: the edge the parts sit on."
+          },
+          "edge": {
+            "enum": ["left", "right", "top", "bottom"],
+            "description": "keepout: the edge that gets a part-free strip."
+          },
+          "depth_mm": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "keepout: width of the part-free strip along edge."
+          },
+          "max_area_mm2": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "loop_area: largest area of the polygon through the listed part centers."
+          },
+          "track_width_mm": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "high_current: routed width for the listed nets."
+          },
+          "max_skew_mm": {
+            "type": "number",
+            "minimum": 0,
+            "description": "differential_pair: largest routed length difference between the two nets."
+          },
+          "rotation_deg": {
+            "enum": [0, 90, 180, 270],
+            "description": "orientation: required rotation of the listed parts."
           },
           "weight": {
             "type": "number",
+            "minimum": 0,
             "description": "Relative importance. Higher is stricter."
           },
           "hard": {
             "type": "boolean",
             "description": "When true, a violation is illegal. When false or omitted, it adds cost."
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "type": { "const": "proximity" } } },
+            "then": { "required": ["components", "max_distance_mm"], "properties": { "components": { "minItems": 2 } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "board_edge" } } },
+            "then": { "required": ["preferred_edge"], "anyOf": [{ "required": ["components"] }, { "required": ["component"] }] }
+          },
+          {
+            "if": { "properties": { "type": { "const": "group" } } },
+            "then": { "required": ["components"], "properties": { "components": { "minItems": 2 } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "keepout" } } },
+            "then": { "required": ["edge", "depth_mm"] }
+          },
+          {
+            "if": { "properties": { "type": { "const": "separation" } } },
+            "then": { "required": ["components", "from", "min_distance_mm"] }
+          },
+          {
+            "if": { "properties": { "type": { "const": "loop_area" } } },
+            "then": { "required": ["components"], "properties": { "components": { "minItems": 3 } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "high_current" } } },
+            "then": { "required": ["nets", "track_width_mm"], "properties": { "nets": { "minItems": 1 } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "differential_pair" } } },
+            "then": { "required": ["nets"], "properties": { "nets": { "minItems": 2, "maxItems": 2 } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "orientation" } } },
+            "then": { "required": ["rotation_deg"], "anyOf": [{ "required": ["components"] }, { "required": ["component"] }] }
+          }
+        ]
       }
     }
   }

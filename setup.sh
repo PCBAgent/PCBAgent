@@ -104,6 +104,23 @@ if ! grep -Fq "$freerouting_dir" "$activate"; then
 	printf 'export PATH=%q:"$PATH"\n' "$freerouting_dir" >>"$activate"
 fi
 
+kicad_python=""
+for candidate in \
+	"/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3" \
+	"/usr/bin/python3"; do
+	if [[ -x "$candidate" ]] && "$candidate" -c "import pcbnew" >/dev/null 2>&1; then
+		kicad_python="$candidate"
+		break
+	fi
+done
+if [[ -n "$kicad_python" ]]; then
+	if ! grep -q 'KICAD_PYTHON=' "$activate"; then
+		printf 'export KICAD_PYTHON=%q\n' "$kicad_python" >>"$activate"
+	fi
+else
+	echo "No Python with KiCad's pcbnew module. /layout cannot build boards until KiCad is installed." >&2
+fi
+
 if [[ ! -f .tools/jlcpcb/economic-parts.csv ]]; then
 	.venv/bin/python skills/parts/fetch_catalog.py
 fi
