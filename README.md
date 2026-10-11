@@ -10,14 +10,12 @@ Cloud schematic tools upload the design before they answer. Here the model and t
 
 ## What it does
 
-One request moves through four checks. The model writes engineering intent. Deterministic tools decide whether it is true.
+One request becomes a checked board. The model writes the circuit. SPICE, the parts catalog, the placer, and KiCad decide whether that circuit is true. After the first prompt, the run continues on its own until you cancel it, and you can watch placement and routing in KiCad while it does.
 
-1. **Specify and simulate.** `/design` writes a circuit spec and a SKiDL simulation, then runs it in ngspice. A measured value counts only when it came from the simulation.
-2. **Select parts.** Passives and the regulator are matched to a local JLCPCB catalog. Stock, price, and footprint names are copied from that cache and from the installed KiCad libraries.
-3. **Netlist.** The same connections become a KiCad netlist with real symbols and footprints.
-4. **Place and route.** The model writes placement constraints, such as a capacitor next to its IC. It does not emit coordinates or traces. A placer chooses positions, Freerouting draws the copper, and KiCad's design-rule check scores the board.
-
-After that first request, the agent keeps going. A failed check is reported and repaired in the same session. The run stops when you cancel it.
+1. **Specify and simulate.** `/design` writes a circuit spec and a SKiDL file. SKiDL emits a SPICE netlist, and ngspice runs it. The model does not hand-write a simulator deck.
+2. **Verify.** Each acceptance number in the spec, such as output voltage and current, is compared with the ngspice measurement inside the stated tolerance. A value counts only when that simulation produced it. A miss stays inside `/design`: the model changes the circuit and the same checks run again. It does not edit the spec to hide a failure.
+3. **Select parts and write the netlist.** Passives and the regulator are matched to a local JLCPCB catalog. Stock, price, and footprint names are copied from that cache and from the installed KiCad libraries. The same connections become a KiCad netlist with those symbols and footprints.
+4. **Place and route.** `/layout` asks the model for placement constraints, such as a capacitor next to its IC. It does not emit coordinates or traces. A placer chooses positions, Freerouting draws the copper, and KiCad's design-rule check scores the board. `layout.py --demo` records that sequence and plays it in the PCB editor with no further prompts.
 
 ## Demo
 
