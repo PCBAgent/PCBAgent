@@ -1,0 +1,25 @@
+2026-10-10 20:52:36.567 INFO   Freerouting CLI v2.5.0 (build-date: 2026-10-05)
+2026-10-10 20:52:36.568 INFO   Hardware: 20 CPU cores, 32743 MB RAM
+2026-10-10 20:52:36.819 INFO   [FFF864\2F39E5] Loading board file 'board.dsn'...
+2026-10-10 20:52:36.825 INFO   [FFF864\2F39E5] Job 'FFF864\2F39E5' started at 2026-10-11T03:52:36.825106745Z.
+2026-10-10 20:52:36.827 INFO   [FFF864\2F39E5] Pipeline thread limits: autorouter pass is single-threaded, optimizer.max_threads=19.
+2026-10-10 20:52:36.827 INFO   [FFF864\2F39E5] Fanout stage started on board 'cd814bb3779a4610b6fa5920cf181226' with 10 of 10 SMD pins needing fanout (0 already connected, 0 netless).
+2026-10-10 20:52:36.853 INFO   [FFF864\2F39E5] Fanout pass #1 on board '14166aab49d7922362d2193d0533367d' completed in 0.02 seconds with 9 SMD pins fanouted, 0 not routed, 0 insert errors, +2 extra vias (0 SMD pins still to check in pass, ripup costs=100).
+2026-10-10 20:52:36.866 INFO   [FFF864\2F39E5] Fanout pass #2 on board '1afe2a957062e0b6617eb7fb4a98a205' completed in 0.01 seconds with 3 SMD pins fanouted, 0 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=200).
+2026-10-10 20:52:36.868 INFO   [FFF864\2F39E5] Fanout pass #3 on board '1afe2a957062e0b6617eb7fb4a98a205' completed in 0.00 seconds with 0 SMD pins fanouted, 0 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=300).
+2026-10-10 20:52:36.868 INFO   [FFF864\2F39E5] Fanout stage completed: started with 10 total SMD pins, completed in 0.04 seconds, escaped pins: 10/10 (100.0%), using 0.04 total CPU seconds, 0.04 GB total allocated, and 69.6 MB peak heap usage.
+2026-10-10 20:52:36.869 INFO   [FFF864\2F39E5] Auto-routing stage started on board '1afe2a957062e0b6617eb7fb4a98a205' with baseline score 809.52 for 1 unrouted item.
+2026-10-10 20:52:36.877 INFO   [FFF864\2F39E5] Auto-routing pass #1 on board '1afe2a957062e0b6617eb7fb4a98a205' was completed in 0.01 seconds with score 1000.00 (0 unrouted and 0 violations).
+2026-10-10 20:52:36.878 INFO   [FFF864\2F39E5] Auto-routing pass #2 on board 'b945e20263f59057c6ee4cd48814172d' was completed in 0.00 seconds with score 1000.00 (0 unrouted and 0 violations).
+2026-10-10 20:52:36.880 INFO   [FFF864\2F39E5] Auto-routing stage completed: started with 7 unrouted nets, completed in 0.05 seconds, final score: 1000.00 (0 unrouted and 0 violations), using 0.00 total CPU seconds, 0.00 GB total allocated, and 0.0 MB peak heap usage.
+2026-10-10 20:52:36.882 INFO   [FFF864\2F39E5] Optimization stage started on board 'b945e20263f59057c6ee4cd48814172d'. Baseline router score: 1000.00, optimizer score: 515.78, incomplete connections: 0, clearance violations: 0.
+2026-10-10 20:52:36.933 INFO   [FFF864\2F39E5] Optimizer pass #1 on board '48462cb3df8599bb77e6f130f962e4f3' was completed in 0.05 seconds with the score of 602.11 (0 unrouted and 0 violations).
+2026-10-10 20:52:36.934 INFO   [FFF864\2F39E5] Optimizer pass #1: optimizer score 515.78 -> 602.11 (IMPROVED, 16.7368%), router score: 1000.00, incomplete connections: 0, clearance violations: 0.
+2026-10-10 20:52:37.007 INFO   [FFF864\2F39E5] Optimizer pass #2 on board 'f7b1ff9144ad6e18b2373682994a1edd' was completed in 0.07 seconds with the score of 593.41 (0 unrouted and 0 violations).
+2026-10-10 20:52:37.008 INFO   [FFF864\2F39E5] Optimizer pass #2 candidate rejected: OPTIMIZER_SCORE_NOT_IMPROVED. Restoring incumbent (optimizer score 602.11, incomplete connections: 0, clearance violations: 0).
+2026-10-10 20:52:37.010 INFO   [FFF864\2F39E5] Optimizer pass #2: optimizer score 602.11 -> 593.41 (REGRESSED, -1.4452%), router score: 1000.00, incomplete connections: 0, clearance violations: 0.
+2026-10-10 20:52:37.010 INFO   [FFF864\2F39E5] Stopping optimizer because the improvement in this pass (-1.4452%) is below the threshold (2.50%).
+2026-10-10 20:52:37.011 INFO   [FFF864\2F39E5] Optimization stage completed:. Baseline router score: 1000.00, baseline optimizer score: 515.78, final router score: 1000.00, final optimizer score: 602.11, completed in 0.13 seconds, using 0.35 total CPU seconds, 0.28 GB total allocated, and 76.6 MB peak heap usage.
+2026-10-10 20:52:37.011 INFO   [FFF864\2F39E5] Job 'FFF864\2F39E5' finished with state: COMPLETED (elapsed: 0.19 seconds, finished at UTC: 2026-10-11T03:52:37.011550400Z).
+2026-10-10 20:52:37.032 INFO   Saving output file '/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/layout/.work/attempt-1/board.ses' (SES)...
+2026-10-10 20:52:37.032 INFO   Successfully saved output file '/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/layout/.work/attempt-1/board.ses' (3472 bytes).

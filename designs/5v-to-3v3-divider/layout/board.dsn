@@ -32,22 +32,14 @@
     )
   )
   (placement
-    (component R_0603_1608Metric
-      (place R2 21986.7 -23604.8 front -90 (PN "47 Ω"))
-    )
     (component R_0402_1005Metric
       (place R1 21475 -21015 front 0 (PN "10 Ω"))
     )
+    (component R_0603_1608Metric
+      (place R2 21986.7 -23604.8 front -90 (PN "47 Ω"))
+    )
   )
   (library
-    (image R_0603_1608Metric
-      
-      
-      
-      
-      (pin RoundRect[T]Pad_800.000000x950.000000_200.761000_um_0.000000_0 1 -825 0)
-      (pin RoundRect[T]Pad_800.000000x950.000000_200.761000_um_0.000000_0 2 825 0)
-    )
     (image R_0402_1005Metric
       
       
@@ -55,6 +47,14 @@
       
       (pin RoundRect[T]Pad_540.000000x640.000000_135.514000_um_0.000000_0 1 -510 0)
       (pin RoundRect[T]Pad_540.000000x640.000000_135.514000_um_0.000000_0 2 510 0)
+    )
+    (image R_0603_1608Metric
+      
+      
+      
+      
+      (pin RoundRect[T]Pad_800.000000x950.000000_200.761000_um_0.000000_0 1 -825 0)
+      (pin RoundRect[T]Pad_800.000000x950.000000_200.761000_um_0.000000_0 2 825 0)
     )
     (padstack RoundRect[T]Pad_540.000000x640.000000_135.514000_um_0.000000_0
       (shape (polygon F.Cu 0  -270.514 185  -260.199 236.859  -230.823 280.823  -186.859 310.199
@@ -81,14 +81,14 @@
     )
   )
   (network
+    (net VIN
+      (pins R1-1)
+    )
     (net VOUT
-      (pins R2-1 R1-2)
+      (pins R1-2 R2-1)
     )
     (net GND
       (pins R2-2)
-    )
-    (net VIN
-      (pins R1-1)
     )
     (class kicad_default GND VIN VOUT
       (circuit

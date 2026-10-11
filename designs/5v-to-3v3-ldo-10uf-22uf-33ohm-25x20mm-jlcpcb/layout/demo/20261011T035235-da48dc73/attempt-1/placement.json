@@ -1,0 +1,46 @@
+{
+  "seed": 1,
+  "parts": {
+    "C1": {
+      "x": 29.1437,
+      "y": 27.2816,
+      "rotation": 90
+    },
+    "C2": {
+      "x": 26.3205,
+      "y": 31.6146,
+      "rotation": 90
+    },
+    "R1": {
+      "x": 22.5774,
+      "y": 32.1629,
+      "rotation": 180
+    },
+    "U1": {
+      "x": 24.145,
+      "y": 24.945,
+      "rotation": 90
+    }
+  },
+  "outline_mm": [
+    20.0,
+    20.0,
+    30.1487,
+    33.6396
+  ],
+  "board_mm": {
+    "width": 10.149,
+    "height": 13.64
+  },
+  "cost": 29.1383,
+  "terms": {
+    "wire_length": 26.3698,
+    "overlap": 0.0,
+    "board_area": 2.7685,
+    "board_size": 0.0,
+    "loop_area": 0.0,
+    "constraints": 0.0
+  },
+  "violations": [],
+  "legal": true
+}

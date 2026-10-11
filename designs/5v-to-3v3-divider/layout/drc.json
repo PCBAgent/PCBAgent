@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-10-10T19:50:00",
+    "date": "2026-10-10T20:20:41",
     "ignored_checks": [
         {
             "description": "Footprint has no courtyard defined",
@@ -40,18 +40,18 @@
                 {
                     "description": "Segment on Edge.Cuts",
                     "pos": {
-                        "x": 23.2617,
+                        "x": 20.0,
                         "y": 20.0
                     },
-                    "uuid": "f0c04b04-15b9-4ae1-ab40-4538ba681985"
+                    "uuid": "c280c36d-6ccc-485b-bb33-7aa741cc6d15"
                 },
                 {
-                    "description": "Reference field of R2",
+                    "description": "Reference field of R1",
                     "pos": {
-                        "x": 23.4167,
-                        "y": 23.6048
+                        "x": 21.475,
+                        "y": 19.845
                     },
-                    "uuid": "a302e74c-985b-4bfe-8c60-2b3e0cbb759f"
+                    "uuid": "a7438304-a6a4-4f1c-8e4b-4f87626c9538"
                 }
             ],
             "severity": "warning",
@@ -63,18 +63,18 @@
                 {
                     "description": "Segment on Edge.Cuts",
                     "pos": {
-                        "x": 20.0,
+                        "x": 23.2617,
                         "y": 20.0
                     },
-                    "uuid": "dd71f24c-3538-4dcc-b0b4-48c6fa6dde55"
+                    "uuid": "7d449adb-e32a-4318-a2ab-64c9c1c82f6d"
                 },
                 {
-                    "description": "Reference field of R1",
+                    "description": "Reference field of R2",
                     "pos": {
-                        "x": 21.475,
-                        "y": 19.845
+                        "x": 23.4167,
+                        "y": 23.6048
                     },
-                    "uuid": "af4c1523-cb78-47d8-a36f-149a64dea9b2"
+                    "uuid": "6e88c089-31a1-4f95-b8b2-fd5eab5bbe69"
                 }
             ],
             "severity": "warning",

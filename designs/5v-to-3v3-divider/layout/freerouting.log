@@ -1,16 +1,16 @@
-2026-10-10 19:49:56.481 INFO   Freerouting CLI v2.5.0 (build-date: 2026-10-05)
-2026-10-10 19:49:56.481 INFO   Hardware: 20 CPU cores, 32743 MB RAM
-2026-10-10 19:49:56.733 INFO   [8517AD\7F2E32] Loading board file 'board.dsn'...
-2026-10-10 19:49:56.737 INFO   [8517AD\7F2E32] Job '8517AD\7F2E32' started at 2026-10-11T02:49:56.737549521Z.
-2026-10-10 19:49:56.739 INFO   [8517AD\7F2E32] Pipeline thread limits: autorouter pass is single-threaded, optimizer.max_threads=19.
-2026-10-10 19:49:56.739 INFO   [8517AD\7F2E32] Fanout stage started on board 'c092c0ac86d5ae4f75fa0b4bf4ee3578' with 2 of 4 SMD pins needing fanout (2 already connected, 0 netless).
-2026-10-10 19:49:56.741 INFO   [8517AD\7F2E32] Fanout pass #1 on board 'a207c7e07ea8cfbfbb9eb3d606493d74' completed in 0.00 seconds with 1 SMD pin fanouted, 0 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=100).
-2026-10-10 19:49:56.742 INFO   [8517AD\7F2E32] Fanout pass #2 on board 'a207c7e07ea8cfbfbb9eb3d606493d74' completed in 0.00 seconds with 0 SMD pins fanouted, 0 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=200).
-2026-10-10 19:49:56.742 INFO   [8517AD\7F2E32] Fanout stage completed: started with 4 total SMD pins, completed in 0.00 seconds, escaped pins: 2/4 (50.0%), using 0.00 total CPU seconds, 0.00 GB total allocated, and 69.6 MB peak heap usage.
-2026-10-10 19:49:56.742 INFO   [8517AD\7F2E32] Auto-routing stage started on board 'a207c7e07ea8cfbfbb9eb3d606493d74' with baseline score 1000.00 for 0 unrouted items.
-2026-10-10 19:49:56.745 INFO   [8517AD\7F2E32] Auto-routing pass #1 on board 'a207c7e07ea8cfbfbb9eb3d606493d74' was completed in 0.00 seconds with score 1000.00 (0 unrouted and 0 violations).
-2026-10-10 19:49:56.746 INFO   [8517AD\7F2E32] Auto-routing stage completed: started with 1 unrouted nets, completed in 0.01 seconds, final score: 1000.00 (0 unrouted and 0 violations), using 0.00 total CPU seconds, 0.00 GB total allocated, and 0.0 MB peak heap usage.
-2026-10-10 19:49:56.746 INFO   [8517AD\7F2E32] Skipping optimization stage: the board has no vias to eliminate and initial optimizer score (1000.00) is already >= 950.00.
-2026-10-10 19:49:56.746 INFO   [8517AD\7F2E32] Job '8517AD\7F2E32' finished with state: COMPLETED (elapsed: 0.01 seconds, finished at UTC: 2026-10-11T02:49:56.746726021Z).
-2026-10-10 19:49:56.787 INFO   Saving output file '/home/asus/PCBAgent/designs/5v-to-3v3-divider/layout/.work/attempt-1/board.ses' (SES)...
-2026-10-10 19:49:56.787 INFO   Successfully saved output file '/home/asus/PCBAgent/designs/5v-to-3v3-divider/layout/.work/attempt-1/board.ses' (795 bytes).
+2026-10-10 20:20:37.457 INFO   Freerouting CLI v2.5.0 (build-date: 2026-10-05)
+2026-10-10 20:20:37.458 INFO   Hardware: 20 CPU cores, 32743 MB RAM
+2026-10-10 20:20:37.710 INFO   [A968CC\8664B2] Loading board file 'board.dsn'...
+2026-10-10 20:20:37.715 INFO   [A968CC\8664B2] Job 'A968CC\8664B2' started at 2026-10-11T03:20:37.715377550Z.
+2026-10-10 20:20:37.717 INFO   [A968CC\8664B2] Pipeline thread limits: autorouter pass is single-threaded, optimizer.max_threads=19.
+2026-10-10 20:20:37.717 INFO   [A968CC\8664B2] Fanout stage started on board 'ecead21c586c6037e4d24be638a92e84' with 2 of 4 SMD pins needing fanout (2 already connected, 0 netless).
+2026-10-10 20:20:37.719 INFO   [A968CC\8664B2] Fanout pass #1 on board 'cb940601f4e51e8cb0506abc19c6e80d' completed in 0.00 seconds with 1 SMD pin fanouted, 0 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=100).
+2026-10-10 20:20:37.721 INFO   [A968CC\8664B2] Fanout pass #2 on board 'cb940601f4e51e8cb0506abc19c6e80d' completed in 0.00 seconds with 0 SMD pins fanouted, 0 not routed, 0 insert errors, +0 extra vias (0 SMD pins still to check in pass, ripup costs=200).
+2026-10-10 20:20:37.721 INFO   [A968CC\8664B2] Fanout stage completed: started with 4 total SMD pins, completed in 0.00 seconds, escaped pins: 2/4 (50.0%), using 0.00 total CPU seconds, 0.00 GB total allocated, and 69.6 MB peak heap usage.
+2026-10-10 20:20:37.721 INFO   [A968CC\8664B2] Auto-routing stage started on board 'cb940601f4e51e8cb0506abc19c6e80d' with baseline score 1000.00 for 0 unrouted items.
+2026-10-10 20:20:37.726 INFO   [A968CC\8664B2] Auto-routing pass #1 on board 'cb940601f4e51e8cb0506abc19c6e80d' was completed in 0.00 seconds with score 1000.00 (0 unrouted and 0 violations).
+2026-10-10 20:20:37.726 INFO   [A968CC\8664B2] Auto-routing stage completed: started with 1 unrouted nets, completed in 0.01 seconds, final score: 1000.00 (0 unrouted and 0 violations), using 0.00 total CPU seconds, 0.00 GB total allocated, and 0.0 MB peak heap usage.
+2026-10-10 20:20:37.726 INFO   [A968CC\8664B2] Skipping optimization stage: the board has no vias to eliminate and initial optimizer score (1000.00) is already >= 950.00.
+2026-10-10 20:20:37.727 INFO   [A968CC\8664B2] Job 'A968CC\8664B2' finished with state: COMPLETED (elapsed: 0.01 seconds, finished at UTC: 2026-10-11T03:20:37.727289039Z).
+2026-10-10 20:20:37.764 INFO   Saving output file '/home/asus/PCBAgent/designs/5v-to-3v3-divider/layout/.work/attempt-1/board.ses' (SES)...
+2026-10-10 20:20:37.764 INFO   Successfully saved output file '/home/asus/PCBAgent/designs/5v-to-3v3-divider/layout/.work/attempt-1/board.ses' (795 bytes).

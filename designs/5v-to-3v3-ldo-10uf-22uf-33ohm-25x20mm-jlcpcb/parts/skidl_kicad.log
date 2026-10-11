@@ -1,0 +1,20 @@
+WARNING: KICAD9_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/<frozen importlib._bootstrap_external>:995=>/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/<frozen importlib._bootstrap>:488]
+WARNING: KICAD6_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/<frozen importlib._bootstrap_external>:995=>/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/<frozen importlib._bootstrap>:488]
+WARNING: KICAD7_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/<frozen importlib._bootstrap_external>:995=>/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/<frozen importlib._bootstrap>:488]
+WARNING: KICAD8_SYMBOL_DIR environment variable is missing, so the default KiCad symbol libraries won't be searched. @ [/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/<frozen importlib._bootstrap_external>:995=>/home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/<frozen importlib._bootstrap>:488]
+WARNING: fp-lib-table file was not found. Component footprints are not available.
+WARNING: fp-lib-table file was not found. Component footprints are not available.
+WARNING: fp-lib-table file was not found. Component footprints are not available.
+WARNING: fp-lib-table file was not found. Component footprints are not available.
+WARNING: Missing tag on C instantiated at /home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/skidl_kicad.py:12.
+WARNING: Random tag YQ9rL_qNpK generated for C.
+WARNING: Missing tag on C instantiated at /home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/skidl_kicad.py:14.
+WARNING: Random tag kMpGj_mhMT generated for C.
+WARNING: Missing tag on R instantiated at /home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/skidl_kicad.py:16.
+WARNING: Random tag ecEIuqs95a generated for R.
+WARNING: Missing tag on AMS1117-3.3 instantiated at /home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/skidl_kicad.py:18.
+WARNING: Random tag jsaj2vqVvM generated for AMS1117-3.3.
+WARNING: Missing tag on  instantiated at /home/asus/PCBAgent/designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb/parts/<frozen importlib._bootstrap>:488.
+INFO: 13 warnings found while generating netlist.
+INFO: 0 errors found while generating netlist.
+

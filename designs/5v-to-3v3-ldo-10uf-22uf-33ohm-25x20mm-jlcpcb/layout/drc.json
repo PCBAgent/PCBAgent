@@ -1,0 +1,107 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-10-10T20:52:40",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.7",
+    "schematic_parity": [],
+    "source": "board.kicad_pcb",
+    "unconnected_items": [],
+    "violations": [
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "Reference field of C1",
+                    "pos": {
+                        "x": 27.9837,
+                        "y": 27.2816
+                    },
+                    "uuid": "40924c67-abbf-471e-ad59-ac78312f4f0b"
+                },
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 27.555,
+                        "y": 26.795
+                    },
+                    "uuid": "a5833cb5-ca22-4b9b-a50c-aae5c8514aae"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clipped by board edge",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 20.0,
+                        "y": 33.6396
+                    },
+                    "uuid": "ad88b8f5-4dc6-405d-bfd1-05fdb2196cde"
+                },
+                {
+                    "description": "Reference field of U1",
+                    "pos": {
+                        "x": 19.645,
+                        "y": 24.945
+                    },
+                    "uuid": "d9928f11-aa15-4cd8-961d-7df97a0b828e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Silkscreen clipped by board edge",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 30.1487,
+                        "y": 33.6396
+                    },
+                    "uuid": "48cc7fc2-406b-4eb4-86f4-71dbd5454fd6"
+                },
+                {
+                    "description": "Reference field of R1",
+                    "pos": {
+                        "x": 22.5774,
+                        "y": 33.3329
+                    },
+                    "uuid": "84eea16e-67cd-41c3-9985-eecff04f805e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        }
+    ]
+}

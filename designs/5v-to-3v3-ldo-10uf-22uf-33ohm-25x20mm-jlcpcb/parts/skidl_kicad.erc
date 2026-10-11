@@ -1,0 +1,5 @@
+ERC WARNING: Insufficient drive current on net GND for pin POWER-IN pin 1/GND of AMS1117-3.3/U1.
+ERC WARNING: Insufficient drive current on net VIN for pin POWER-IN pin 3/VI of AMS1117-3.3/U1.
+ERC INFO: 2 warnings found while running ERC.
+ERC INFO: 0 errors found while running ERC.
+

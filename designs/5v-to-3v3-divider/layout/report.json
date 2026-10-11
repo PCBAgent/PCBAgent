@@ -40,7 +40,7 @@
         "description": "Silkscreen clipped by board edge",
         "items": [
           "Segment on Edge.Cuts",
-          "Reference field of R2"
+          "Reference field of R1"
         ]
       },
       {
@@ -48,7 +48,7 @@
         "description": "Silkscreen clipped by board edge",
         "items": [
           "Segment on Edge.Cuts",
-          "Reference field of R1"
+          "Reference field of R2"
         ]
       }
     ],

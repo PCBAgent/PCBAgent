@@ -1,0 +1,25 @@
+{
+  "constraints": [
+    {
+      "type": "proximity",
+      "components": [
+        "U1",
+        "C1",
+        "C2"
+      ],
+      "max_distance_mm": 2.0,
+      "weight": 3,
+      "hard": true
+    },
+    {
+      "type": "group",
+      "components": [
+        "U1",
+        "C1",
+        "C2",
+        "R1"
+      ],
+      "max_distance_mm": 3.0
+    }
+  ]
+}

@@ -2,11 +2,11 @@
   (base_design board)
   (placement
     (resolution um 10)
-    (component "R_0603_1608Metric"
-      (place R2 219867 -236048 front 270)
-    )
     (component "R_0402_1005Metric"
       (place R1 214750 -210150 front 0)
+    )
+    (component "R_0603_1608Metric"
+      (place R2 219867 -236048 front 270)
     )
   )
   (was_is
@@ -32,9 +32,9 @@
       (net VOUT
         (wire
           (path F.Cu 2500
-            219850 -210150
-            219850 -227781
             219867 -227798
+            219850 -227781
+            219850 -210150
           )
         )
       )
