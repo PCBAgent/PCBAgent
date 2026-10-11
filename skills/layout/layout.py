@@ -315,30 +315,52 @@ def render_view(layout, kicad, source_name, image_name):
 
 LAYOUT_LAYERS = "F.Cu,B.Cu,F.SilkS,B.SilkS,Edge.Cuts,F.CrtYd,F.Fab"
 PLOT_BACKGROUND = "#1a1a1a"
-CROP_PNG = r"""
+PLOT_LONG_EDGE_PX = 900
+PLOT_MARGIN_MM = 1.2
+RASTER_SVG = r"""
+import re
 import sys
-from PIL import Image
-image = Image.open(sys.argv[1]).convert("RGB")
-color = sys.argv[3].lstrip("#")
-background = tuple(int(color[i:i + 2], 16) for i in (0, 2, 4))
-width, height = image.size
-pixels = image.load()
-min_x, min_y, max_x, max_y = width, height, 0, 0
-found = False
-for y in range(height):
-    for x in range(width):
-        red, green, blue = pixels[x, y]
-        if all(abs(channel - target) <= 8 for channel, target in zip((red, green, blue), background)):
-            continue
-        found = True
-        min_x, min_y = min(min_x, x), min(min_y, y)
-        max_x, max_y = max(max_x, x), max(max_y, y)
-if not found:
-    image.save(sys.argv[2])
-    raise SystemExit
-pad = 32
-box = (max(0, min_x - pad), max(0, min_y - pad), min(width, max_x + pad + 1), min(height, max_y + pad + 1))
-image.crop(box).save(sys.argv[2])
+import warnings
+import cairo
+import gi
+gi.require_version("Rsvg", "2.0")
+from gi.repository import Rsvg
+
+svg_path, png_path, color, long_edge, margin = sys.argv[1:]
+long_edge = float(long_edge)
+pad = float(margin)
+svg = open(svg_path, encoding="utf-8").read()
+def short_label(match):
+    return "" if len(match.group(1)) > 16 else match.group(0)
+svg = re.sub(r'<g class="stroked-text"><desc>(.*?)</desc>.*?</g>', short_label, svg, flags=re.S)
+frame = re.search(
+    r'width="([0-9.]+)mm"\s+height="([0-9.]+)mm"\s+viewBox="([0-9.\-]+) ([0-9.\-]+) ([0-9.]+) ([0-9.]+)"',
+    svg,
+)
+if frame is None:
+    raise SystemExit("placement plot has no board-sized viewBox")
+width, height, origin_x, origin_y, box_w, box_h = (float(value) for value in frame.groups())
+svg = svg.replace(frame.group(0),
+    f'width="{width + 2 * pad:.4f}mm" height="{height + 2 * pad:.4f}mm" '
+    f'viewBox="{origin_x - pad:.4f} {origin_y - pad:.4f} {box_w + 2 * pad:.4f} {box_h + 2 * pad:.4f}"',
+    1)
+handle = Rsvg.Handle.new_from_data(svg.encode())
+ok, pixel_w, pixel_h = handle.get_intrinsic_size_in_pixels()
+if not ok or pixel_w <= 0 or pixel_h <= 0:
+    raise SystemExit("placement plot has no size")
+scale = long_edge / max(pixel_w, pixel_h)
+surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, max(1, int(pixel_w * scale)), max(1, int(pixel_h * scale)))
+ctx = cairo.Context(surface)
+red = int(color.lstrip("#")[0:2], 16) / 255
+green = int(color.lstrip("#")[2:4], 16) / 255
+blue = int(color.lstrip("#")[4:6], 16) / 255
+ctx.set_source_rgb(red, green, blue)
+ctx.paint()
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", DeprecationWarning)
+    ctx.scale(scale, scale)
+    handle.render_cairo(ctx)
+surface.write_to_png(png_path)
 """
 
 
@@ -350,14 +372,16 @@ def plot_layout(layout, kicad, source_name, image_name):
     image = (layout / image_name).resolve()
     with tempfile.TemporaryDirectory() as scratch:
         scratch = Path(scratch)
-        pdf = scratch / "plot.pdf"
+        svg = scratch / "plot.svg"
         proc = subprocess.run(
             [
-                kicad, "pcb", "export", "pdf",
-                "--mode-single", "--scale", "0",
-                "--output", str(pdf),
+                kicad, "pcb", "export", "svg",
+                "--mode-single",
+                "--page-size-mode", "2",
+                "--fit-page-to-board",
+                "--exclude-drawing-sheet",
+                "--output", str(svg),
                 "--layers", LAYOUT_LAYERS,
-                "--bg-color", PLOT_BACKGROUND,
                 str(source.resolve()),
             ],
             cwd=layout,
@@ -365,29 +389,19 @@ def plot_layout(layout, kicad, source_name, image_name):
             text=True,
             timeout=KICAD_TIMEOUT_S,
         )
-        if proc.returncode != 0 or not pdf.is_file():
+        if proc.returncode != 0 or not svg.is_file():
             detail = (proc.stderr or proc.stdout).strip()
-            raise NoBoard(f"kicad-cli pcb export pdf wrote no plot for {source_name}\n{detail}")
-        raw = scratch / "plot"
-        proc = subprocess.run(
-            ["pdftoppm", "-png", "-r", "140", "-singlefile", str(pdf), str(raw)],
+            raise NoBoard(f"kicad-cli pcb export svg wrote no plot for {source_name}\n{detail}")
+        raster = subprocess.run(
+            ["/usr/bin/python3", "-c", RASTER_SVG, str(svg), str(image), PLOT_BACKGROUND,
+             str(PLOT_LONG_EDGE_PX), str(PLOT_MARGIN_MM)],
             capture_output=True,
             text=True,
             timeout=KICAD_TIMEOUT_S,
         )
-        plotted = scratch / "plot.png"
-        if proc.returncode != 0 or not plotted.is_file():
-            detail = (proc.stderr or proc.stdout).strip()
-            raise NoBoard(f"pdftoppm wrote no placement plot\n{detail}")
-        crop = subprocess.run(
-            [sys.executable, "-c", CROP_PNG, str(plotted), str(image), PLOT_BACKGROUND],
-            capture_output=True,
-            text=True,
-            timeout=KICAD_TIMEOUT_S,
-        )
-        if crop.returncode != 0 or not image.is_file():
-            detail = (crop.stderr or crop.stdout).strip()
-            raise NoBoard(f"could not crop {image.name}\n{detail}")
+        if raster.returncode != 0 or not image.is_file():
+            detail = (raster.stderr or raster.stdout).strip()
+            raise NoBoard(f"could not rasterize {image.name}\n{detail}")
     return image.name
 
 
