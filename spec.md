@@ -40,7 +40,7 @@ Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage 
 ### Example
 
 ```text
-/design 5 V supply to 3.3 V buck regulator using one buck regulator IC, a 10 µH inductor, a 10 µF input capacitor, a 100 nF input capacitor, and a 22 µF output capacitor, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 25 mm by 20 mm, JLCPCB. Add the catch diode and feedback resistors the chosen IC requires.
+/design 5 V supply to 3.3 V LDO using one linear regulator IC, a 10 µF input capacitor, and a 22 µF output capacitor, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 25 mm by 20 mm, JLCPCB
 ```
 
 `/design` writes the SKiDL, runs the tests against that design's `circuit-spec.json`, and revises the SKiDL when a measurement misses. Then:
@@ -107,6 +107,8 @@ Still to build, in pipeline order:
 
 1. **Layout on a real design.** Run `/layout` on the regulator after `/design` writes its `board.net`, and on one more circuit. Record whether the model's constraints are valid on the first try and how many runs it takes to pass.
 2. **Manufacturing output.** Gerbers, drill files, BOM, and the position file from `board.kicad_pcb` with `kicad-cli pcb export`, in the shop's format.
+
+
 
 ## Open questions
 
