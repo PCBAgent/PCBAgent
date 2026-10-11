@@ -1,6 +1,6 @@
 ---
 name: layout
-description: Turn a part-selected circuit into placement constraints, then a placed, routed, and checked KiCad board. Use only after part selection and when the user asks for layout.
+description: Turn a part-selected circuit into placement constraints, then a placed, routed, and checked KiCad board. Use when the user runs /layout, after /design has written parts/board.net.
 ---
 
 # Layout

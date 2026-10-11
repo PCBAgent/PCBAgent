@@ -1,0 +1,2 @@
+Demo board: /home/asus/PCBAgent/designs/5v-to-3v3-divider/layout/demo/20261011T024955-87ac81f3/playback/3206d52a/demo.kicad_pcb
+Demo playback stopped: Could not connect to /home/asus/PCBAgent/designs/5v-to-3v3-divider/layout/demo/20261011T024955-87ac81f3/playback/3206d52a/demo.kicad_pcb. Enable Preferences > Plugins > Enable KiCad API, and close any startup dialogs. Failed to connect to KiCad: Connection refused. Layout generation is independent; replay the recording later.

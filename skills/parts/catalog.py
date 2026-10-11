@@ -2,6 +2,8 @@
 
 import csv
 import re
+from difflib import SequenceMatcher
+from functools import lru_cache
 from pathlib import Path
 
 
@@ -66,9 +68,25 @@ IC_FOOTPRINTS = {
     "SOT-23-6": "Package_TO_SOT_SMD:SOT-23-6",
     "SOT-23-5": "Package_TO_SOT_SMD:SOT-23-5",
     "SOT-23": "Package_TO_SOT_SMD:SOT-23",
+    "SOT-223": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
     "SOT-89-3": "Package_TO_SOT_SMD:SOT-89-3",
+    "TO-252-2(DPAK)": "Package_TO_SOT_SMD:TO-252-2",
     "TO-263-5": "Package_TO_SOT_SMD:TO-263-5_TabPin3",
 }
+
+DIODE_FOOTPRINTS = {
+    "SMA(DO-214AC)": "Diode_SMD:D_SMA",
+    "SMA": "Diode_SMD:D_SMA",
+    "SMA_DO-214AC": "Diode_SMD:D_SMA",
+    "SMB": "Diode_SMD:D_SMB",
+    "SMC": "Diode_SMD:D_SMC",
+    "SMC(DO-214AB)": "Diode_SMD:D_SMC",
+    "SOD-123": "Diode_SMD:D_SOD-123",
+    "SOD-323": "Diode_SMD:D_SOD-323",
+}
+
+VF_AT = re.compile(r"mV@(\d+(?:\.\d+)?)A\b", re.I)
+MV_RANGE = re.compile(r"(\d+(?:\.\d+)?)mV~(\d+(?:\.\d+)?)V")
 
 
 def repo_root():
@@ -202,23 +220,190 @@ def stock_of(row):
         return None
 
 
-def footprint_for(kind, package, footprint_dir):
+KIND_LIBRARIES = {
+    "resistor": ("Resistor_SMD",),
+    "capacitor": ("Capacitor_SMD",),
+    "inductor": ("Inductor_SMD",),
+    "diode": ("Diode_SMD", "Package_TO_SOT_SMD"),
+    "regulator": ("Package_SO", "Package_TO_SOT_SMD", "Package_TO_SOT_THT", "Package_DFN_QFN", "Package_DIP"),
+}
+
+SIZE_CODES = ("0201", "0402", "0603", "0805", "1206", "1210", "2010", "2512")
+
+FAMILY_ALIASES = {
+    "ESOP": ("ESOP", "SOIC", "SOP"),
+    "TSSOP": ("TSSOP",),
+    "SSOP": ("SSOP",),
+    "MSOP": ("MSOP",),
+    "SOIC": ("SOIC",),
+    "SOP": ("SOP", "SOIC"),
+    "VQFN": ("VQFN", "QFN"),
+    "QFN": ("QFN",),
+    "DFN": ("DFN",),
+    "SOD": ("SOD",),
+    "SOT": ("SOT",),
+    "SMAF": ("SMAF", "SMA"),
+    "SMBF": ("SMBF", "SMB"),
+    "SMA": ("SMA",),
+    "SMB": ("SMB",),
+    "SMC": ("SMC",),
+    "DIP": ("DIP",),
+    "TO": ("TO",),
+}
+
+FAMILY_ORDER = (
+    "ESOP", "TSSOP", "SSOP", "MSOP", "SOIC", "SOP", "VQFN", "QFN", "DFN",
+    "SMAF", "SMBF", "SOD", "SOT", "SMA", "SMB", "SMC", "DIP", "TO",
+)
+
+
+def _exact_footprint(kind, package):
+    if kind == "diode":
+        return DIODE_FOOTPRINTS.get(package)
     if kind in PASSIVE_LIB and package in PASSIVE_SIZE:
         lib = PASSIVE_LIB[kind]
         name = f"{PASSIVE_PREFIX[kind]}_{package}_{PASSIVE_SIZE[package]}"
-        ref = f"{lib}:{name}"
-    else:
-        ref = None
-        for prefix, candidate in IC_FOOTPRINTS.items():
-            if package != prefix:
-                continue
-            ref = candidate
-            break
-    if ref is None or footprint_dir is None:
-        return ref
+        return f"{lib}:{name}"
+    for prefix, candidate in IC_FOOTPRINTS.items():
+        if package == prefix:
+            return candidate
+    return None
+
+
+def _footprint_file(footprint_dir, ref):
     lib, name = ref.split(":", 1)
-    path = footprint_dir / f"{lib}.pretty" / f"{name}.kicad_mod"
-    return ref if path.is_file() else None
+    return (footprint_dir / f"{lib}.pretty" / f"{name}.kicad_mod").is_file()
+
+
+def _has_token(text, token):
+    return re.search(rf"(^|[^A-Z0-9]){re.escape(token)}([^A-Z0-9]|$)", text.upper()) is not None
+
+
+def _chip_size(package):
+    for code in SIZE_CODES:
+        if _has_token(package, code):
+            return code
+    return None
+
+
+def _family(package):
+    text = package.upper()
+    paren = re.search(r"\(([A-Z0-9-]+)\)", text)
+    if paren and paren.group(1) in FAMILY_ALIASES:
+        name = paren.group(1)
+        return name, FAMILY_ALIASES[name]
+    size = _chip_size(text)
+    if size:
+        return size, (size,)
+    for name in FAMILY_ORDER:
+        if _has_token(text, name):
+            return name, FAMILY_ALIASES[name]
+    dims = re.findall(r"(\d+(?:\.\d+)?)X(\d+(?:\.\d+)?)", text.replace("×", "X"))
+    if dims:
+        return "DIM", tuple(f"{a}X{b}" for a, b in dims)
+    return None, ()
+
+
+def _pin_count(text, family):
+    upper = text.upper()
+    if family in SIZE_CODES or family == "DIM" or family is None:
+        return None
+    if family in {"SOD", "SMA", "SMB", "SMC", "SMAF", "SMBF"}:
+        return 2
+    if family == "SOT":
+        match = re.search(r"SOT-23-(\d)", upper)
+        if match:
+            return int(match.group(1))
+        match = re.search(r"SOT-89-(\d)", upper)
+        if match:
+            return int(match.group(1))
+        if "SOT-23" in upper or "SOT-89" in upper:
+            return 3
+        return None
+    if family == "TO":
+        match = re.search(r"TO-?\d+[A-Z0-9]*-(\d+)", upper)
+        return int(match.group(1)) if match else None
+    match = re.search(rf"{family}-(\d+)", upper)
+    return int(match.group(1)) if match else None
+
+
+def _has_exposed_pad(text):
+    upper = text.upper()
+    return "ESOP" in upper or re.search(r"(^|[^A-Z])EP([^A-Z]|$)", upper) is not None
+
+
+@lru_cache(maxsize=64)
+def _footprint_names(directory):
+    path = Path(directory)
+    if not path.is_dir():
+        return ()
+    return tuple(sorted(item.stem for item in path.glob("*.kicad_mod")))
+
+
+def _dimension_match(package_dims, stem):
+    found = re.findall(r"(\d+(?:\.\d+)?)X(\d+(?:\.\d+)?)", stem.upper().replace("×", "X"))
+    for wanted in package_dims:
+        left, right = wanted.split("X")
+        for one, two in found:
+            if abs(float(left) - float(one)) <= 0.2 and abs(float(right) - float(two)) <= 0.2:
+                return True
+    return False
+
+
+def _footprint_score(package, stem, family, aliases):
+    if family == "DIM":
+        if not _dimension_match(aliases, stem):
+            return None
+        pin_match = 1
+    else:
+        if not any(_has_token(stem, alias) for alias in aliases):
+            return None
+        wanted = _pin_count(package, family)
+        found = _pin_count(stem, family)
+        if wanted is not None and found is not None and wanted != found:
+            return None
+        pin_match = 1 if wanted is not None and found == wanted else 0
+    exposed = _has_exposed_pad(package)
+    has_pad = _has_exposed_pad(stem)
+    plain = "HANDSOLDER" not in stem.upper() and "PAD" not in stem.upper() and "THERMALVIAS" not in stem.upper()
+    ratio = SequenceMatcher(None, re.sub(r"[^A-Z0-9]", "", package.upper()), re.sub(r"[^A-Z0-9]", "", stem.upper())).ratio()
+    return (pin_match, 1 if exposed == has_pad else 0, 1 if plain else 0, ratio, -len(stem))
+
+
+def closest_footprint_name(package, library_dir):
+    """Nearest footprint stem in one .pretty directory, or None."""
+    if not package:
+        return None
+    family, aliases = _family(package)
+    if family is None:
+        return None
+    best = None
+    best_score = None
+    for stem in _footprint_names(str(library_dir)):
+        score = _footprint_score(package, stem, family, aliases)
+        if score is None:
+            continue
+        if best_score is None or score > best_score:
+            best = stem
+            best_score = score
+    return best
+
+
+def _closest_footprint(kind, package, footprint_dir):
+    for lib in KIND_LIBRARIES.get(kind, ()):
+        stem = closest_footprint_name(package, footprint_dir / f"{lib}.pretty")
+        if stem:
+            return f"{lib}:{stem}"
+    return None
+
+
+def footprint_for(kind, package, footprint_dir):
+    ref = _exact_footprint(kind, package)
+    if footprint_dir is None:
+        return ref
+    if ref and _footprint_file(footprint_dir, ref):
+        return ref
+    return _closest_footprint(kind, package or "", footprint_dir)
 
 
 def symbol_for(kind, model, symbol_dir):
@@ -232,7 +417,7 @@ def symbol_for(kind, model, symbol_dir):
         text = path.read_text(encoding="utf-8", errors="replace")
         for match in re.finditer(r'^\t\(symbol "([^"]+)"', text, re.M):
             name = match.group(1)
-            if token == name or token.startswith(name):
+            if token == name or (len(name) >= 4 and token.startswith(name)):
                 if best is None or len(name) > len(best[0]):
                     best = (name, f"{path.stem}:{name}")
     return best[1] if best else None
@@ -289,6 +474,108 @@ def search_passive(rows, kind, value_si, supply_v, footprint_dir, symbol_dir):
     return chosen
 
 
+def wanted_topologies(spec):
+    """Which regulator families the prompt asked for. A bare 'regulator' allows all three."""
+    prompt = (spec.get("prompt") or "").lower()
+    buck = any(word in prompt for word in ("buck", "step-down", "step down", "switching"))
+    boost = "boost" in prompt
+    ldo = any(word in prompt for word in ("ldo", "linear"))
+    named = {name for name, flag in (("buck", buck), ("boost", boost), ("ldo", ldo)) if flag}
+    return named or {"buck", "boost", "ldo"}
+
+
+def row_topology(row):
+    blob = f"{row.get('type') or ''} {row.get('describe') or ''}".lower()
+    if "low drop" in blob or re.search(r"\bldo\b", blob) or "linear" in blob:
+        return "ldo"
+    buck = "buck" in blob or "step-down" in blob or "step down" in blob
+    boost = "boost" in blob
+    if buck and boost:
+        return "buck-boost"
+    if buck:
+        return "buck"
+    if boost:
+        return "boost"
+    return None
+
+
+def topology_fits(row_name, wanted):
+    if row_name == "buck-boost":
+        return "buck" in wanted or "boost" in wanted
+    return row_name in wanted
+
+
+def chosen_topology(row_name, wanted):
+    if row_name == "buck-boost":
+        if wanted == {"boost"}:
+            return "boost"
+        return "buck"
+    return row_name
+
+
+def is_synchronous(text):
+    low = text.lower()
+    if "non-synchronous" in low or "nonsynchronous" in low:
+        return False
+    if "synchronous" in low:
+        return True
+    return re.search(r"built-in\s+yes", low) is not None
+
+
+def feedback_voltage(text, adjustable):
+    """Reference of an adjustable regulator: the low end of its output range."""
+    if not adjustable:
+        return None
+    candidates = [low for low, high in voltage_ranges(text) if low <= 1.5 and high >= 5]
+    for number, high in MV_RANGE.findall(text):
+        low = float(number) / 1000
+        if low <= 1.5 and float(high) >= 5:
+            candidates.append(low)
+    return min(candidates) if candidates else None
+
+
+def diode_forward_current(text):
+    """Average forward current from the Vf test, not the surge rating."""
+    match = VF_AT.search(text)
+    if match is None:
+        return None
+    return float(match.group(1))
+
+
+def _in_stock(record):
+    return record.get("stock") is not None and record["stock"] > 0
+
+
+def _with_libraries(record, kind, symbol_dir):
+    record["symbol"] = symbol_for(kind, record["manufacturer_part_number"], symbol_dir)
+    if not record.get("symbol") or not record.get("footprint") or not _in_stock(record):
+        return None
+    return record
+
+
+def search_diode(rows, supply_v, current_a, footprint_dir, symbol_dir):
+    """A Schottky catch diode rated for the supply voltage and the load current."""
+    found = []
+    for row in rows:
+        if "schottky" not in (row.get("type") or "").lower():
+            continue
+        text = row.get("describe") or ""
+        record = row_record(row, "diode", footprint_dir)
+        record["kind"] = "diode"
+        record["current_rating_a"] = diode_forward_current(text)
+        rating = record["voltage_rating_v"]
+        if supply_v is not None and (rating is None or rating < supply_v):
+            continue
+        forward = record["current_rating_a"]
+        if current_a is not None and (forward is None or forward < current_a):
+            continue
+        ready = _with_libraries(record, "diode", symbol_dir)
+        if ready is not None:
+            found.append(ready)
+    found.sort(key=lambda item: (item["availability"] != "basic", item["price"] is None, item["price"] or 0, -(item["stock"] or 0)))
+    return found[0] if found else None
+
+
 def search_regulator(rows, spec, footprint_dir, symbol_dir):
     supply = spec.get("supply_voltage_v")
     output = spec.get("output_voltage_v")
@@ -296,11 +583,13 @@ def search_regulator(rows, spec, footprint_dir, symbol_dir):
     if output is None or current is None:
         return None
     tolerance = (spec.get("tolerances") or {}).get("output_voltage_v", 0.05)
+    wanted = wanted_topologies(spec)
     found = []
     for row in rows:
-        text = f"{row.get('describe') or ''} {row.get('type') or ''} {row.get('category') or ''}"
-        if "buck" not in text.lower() and "dc-dc" not in text.lower():
+        family = row_topology(row)
+        if not topology_fits(family, wanted):
             continue
+        text = f"{row.get('describe') or ''} {row.get('type') or ''}"
         record = row_record(row, "regulator", footprint_dir)
         record["kind"] = "regulator"
         rating = record["current_rating_a"]
@@ -322,10 +611,13 @@ def search_regulator(rows, spec, footprint_dir, symbol_dir):
             input_ranges = [item for item in ranges if item not in output_ranges] or ranges
             if not any(covers(low, high, supply) for low, high in input_ranges):
                 continue
-        found.append(record)
+        topology = chosen_topology(family, wanted)
+        record["topology"] = topology
+        record["adjustable"] = adjustable
+        record["feedback_voltage_v"] = feedback_voltage(text, adjustable)
+        record["external_diode"] = topology in ("buck", "boost") and not is_synchronous(text)
+        ready = _with_libraries(record, "regulator", symbol_dir)
+        if ready is not None:
+            found.append(ready)
     found.sort(key=lambda item: (item["availability"] != "basic", item["price"] is None, item["price"] or 0))
-    if not found:
-        return None
-    chosen = found[0]
-    chosen["symbol"] = symbol_for("regulator", chosen["manufacturer_part_number"], symbol_dir)
-    return chosen
+    return found[0] if found else None

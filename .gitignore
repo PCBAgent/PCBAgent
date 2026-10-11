@@ -5,3 +5,4 @@ __pycache__/
 designs/*/layout/.work/
 *.kicad_prl
 fp-info-cache
+.history/

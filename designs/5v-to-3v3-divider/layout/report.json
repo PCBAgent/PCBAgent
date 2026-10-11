@@ -1,0 +1,73 @@
+{
+  "status": "pass",
+  "return_to": null,
+  "chosen_attempt": 1,
+  "board_mm": {
+    "width": 3.262,
+    "height": 5.63
+  },
+  "board_max_mm": {
+    "width": 25,
+    "height": 20
+  },
+  "reasons": [],
+  "placement": {
+    "board_mm": {
+      "width": 3.262,
+      "height": 5.63
+    },
+    "cost": 2.1338,
+    "terms": {
+      "wire_length": 1.7665,
+      "overlap": 0.0,
+      "board_area": 0.3673,
+      "board_size": 0.0,
+      "loop_area": 0.0,
+      "constraints": 0.0
+    },
+    "violations": [],
+    "legal": true
+  },
+  "routing": {
+    "unrouted": 0,
+    "vias": 0
+  },
+  "drc": {
+    "errors": [],
+    "warnings": [
+      {
+        "type": "silk_edge_clearance",
+        "description": "Silkscreen clipped by board edge",
+        "items": [
+          "Segment on Edge.Cuts",
+          "Reference field of R2"
+        ]
+      },
+      {
+        "type": "silk_edge_clearance",
+        "description": "Silkscreen clipped by board edge",
+        "items": [
+          "Segment on Edge.Cuts",
+          "Reference field of R1"
+        ]
+      }
+    ],
+    "unconnected": []
+  },
+  "checks": [],
+  "general_rules": [],
+  "render": [
+    "placement.png",
+    "board.png"
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "seed": 1,
+      "extra_gap_mm": 0.0,
+      "stage": "checks",
+      "status": "pass",
+      "reasons": []
+    }
+  ]
+}

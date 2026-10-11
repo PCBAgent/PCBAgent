@@ -1,0 +1,16 @@
+[
+  {
+    "requirement": "output_voltage_v",
+    "target": 3.3,
+    "measured": 3.298596341982135,
+    "tolerance": 0.05,
+    "status": "pass"
+  },
+  {
+    "requirement": "output_current_a",
+    "target": 0.1,
+    "measured": 0.09995746490854955,
+    "tolerance": 0.01,
+    "status": "pass"
+  }
+]

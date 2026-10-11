@@ -1,11 +1,11 @@
 ---
 name: circuit
-description: Turn a natural-language circuit request into a spec, a SKiDL simulation, and passing ngspice checks. Use during /design, before parts or layout.
+description: Turn a natural-language circuit request into a spec, a SKiDL simulation, catalog parts, and a KiCad netlist. Use during /design, before layout.
 ---
 
 # Circuit
 
-Read `schemas/circuit-spec.schema.json` and write a spec that validates against it. Load the `requirements` skill and run its check before any simulation file. If that check asks the user for missing requirements, stop there. After the check passes, load the `skidl` skill and write the simulation file it describes. Do not hand-write a SPICE deck or a KiCad netlist.
+Read `schemas/circuit-spec.schema.json` and write a spec that validates against it. Load the `requirements` skill and run its check before any simulation file. If that check asks the user for missing requirements, stop there. After the check passes, run `skills/parts/choose_ic.py` on the design. When it writes `design/ic.json`, the simulation uses that topology. An LDO is not a buck. An asynchronous buck or boost includes the catch diode `ic.json` asks for, and an adjustable part includes the feedback divider around `feedback_voltage_v`. Connect those parts to the pin names in the file. Then load the `skidl` skill and write the simulation file it describes. Do not hand-write a SPICE deck. The KiCad netlist comes after pytest exits 0, from the parts skill.
 
 Write these files in `designs/<slug>/design/`:
 
@@ -23,3 +23,5 @@ Then run the tests for this design. The checks come from its `circuit-spec.json`
 The test runs `skills/circuit/verify.py` on `designs/<slug>`. The runner reads and writes `designs/<slug>/design/`. It writes `simulation-results.json` there, one object per measured field matching `schemas/simulation-result.schema.json`. Targets and tolerances come from `circuit-spec.json`. The runner sets `status`. On a failure it prints why: measured value, target, tolerance, and whether the measurement is high or low. Do not write or edit `simulation-results.json` yourself, and do not relax a requirement to make a failure pass.
 
 Pytest exits 0 when every check passes. Otherwise read the failed measurements, change `skidl_sim.py` so those errors shrink, and run the tests again. Repeat until pytest exits 0. Exit 2 means there is no result: `skidl_sim.py` crashed, `measure()` is missing or skipped a field, or a tolerance is missing from the spec. Fix that cause before judging numbers.
+
+After pytest exits 0, load the `parts` skill. `lookup.py` keeps the IC in `design/ic.json` and matches the simulated passives. Write `parts/skidl_kicad.py` with those symbols and the same nets, indexing the IC by pin number (`u1[1]`), then run `skills/parts/netlist.py`. That writes `parts/board.net`. Stop there until the user runs `/layout`.

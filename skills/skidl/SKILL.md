@@ -65,12 +65,17 @@ Connect the negative terminal of an independent source to `gnd`. Do not invent p
 ```python
 sw_model = DeviceModel("SW", "SW", Vt=2.5, Ron=0.01, Roff=1e6)
 S(model=sw_model)["ip", "in", "op", "on"] += gate, gnd, vin, switch
-D(model=DeviceModel("D", "D"))["p", "n"] += gnd, switch
 ```
 
 Drive `gate` with `PULSEV`, as the notebook does: `PULSEV(initial_value=0, pulsed_value=5 @ u_V, pulse_width=1 @ u_ms, period=2 @ u_ms)`. `pulse_width` and `period` are the on-time and the repeat time. A 100 kHz switch is `period=10 @ u_us`. A duty of 0.66 is `pulse_width=6.6 @ u_us`. `V` does not take those arguments.
 
-A behavioral buck is that pulse on `gate`, the switch from `vin` to the switch node, the diode from `gnd` to the switch node, `L` from the switch node to `vout`, both input capacitors from `vin` to `gnd`, and the output capacitor and the load resistor from `vout` to `gnd`. The load is the spec load. A 22 µF capacitor into 33 ohms settles in about a millisecond, so a transient of a few hundred microseconds has not settled. Run long enough for the output to settle, then average the last part.
+When `design/ic.json` exists, follow its `topology`. An `ldo` has no inductor and no `S()`: a fixed part is a voltage source from `roles.output` to `gnd` at the regulated voltage, and an adjustable part uses the feedback divider. A `buck` or `boost` connects the supply to `roles.input`, the inductor to `roles.switch`, and `roles.ground` to `gnd`. `PULSEV` drives `S()`, and `S()` connects the input net to the switch net. When `external_diode` is true the part is asynchronous, so the off-time current needs a catch diode and the switch alone does not regulate:
+
+```python
+D(model=DeviceModel("D", "D"), ref="D1")["p", "n"] += gnd, switch
+```
+
+The anode is ground and the cathode is the switch node. The duty is about `(Vout + 0.4) / Vin` because of that diode, not `Vout / Vin`. Lookup matches `D1` to a catalog Schottky, so do not delete it to make the parts step pass. When `adjustable` is true, `feedback_voltage_v` is the reference: the divider from the regulated rail to `roles.feedback` to `gnd` sets `Vout = feedback_voltage_v * (1 + Rtop / Rbottom)`. A 22 µF capacitor into 33 ohms settles in about a millisecond, so a transient of a few hundred microseconds has not settled. Run long enough for the output to settle, then average the last part.
 
 A Python line that starts with `.model` is a syntax error. Fix that syntax. Do not delete the circuit and return the spec targets instead. The runner rejects a returned number that did not come from the analysis, including a simulated value multiplied back to the spec target. Return the node voltage, `sum(samples) / len(samples)` for a waveform, or the load voltage divided by the load resistance.
 
@@ -80,7 +85,7 @@ A second circuit in the same process starts with `reset()`.
 
 ## KiCad netlist file
 
-Use this only when a later stage asks for a board netlist.
+Use this after pytest exits 0, when `/design` writes the board netlist. Connect the IC by pin number from `design/ic.json`. `u1[1]` is pin number 1. `u1['VIN']` and `u1['~{EN}']` are pin names and are not used in this file.
 
 ```python
 from skidl import *
@@ -94,7 +99,15 @@ set_default_tool(KICAD)
 r = Part("Device", "R", value="1K", footprint="Resistor_SMD:R_0805_2012Metric")
 ```
 
-Look up a part with `skidl-part-search` before guessing a library or name. A regular expression as the part name returns the first match and warns if several match. Print the part to see pin numbers and names. `Part.p[...]` is pin numbers. `Part.n[...]` is pin names.
+Look up a part with `skidl-part-search` before guessing a library or name. A regular expression as the part name returns the first match and warns if several match. Print the part to see pin numbers. In `skidl_kicad.py`, index every IC pin by that number:
+
+```python
+u1 = Part("Regulator_Switching", "XL1509-ADJ", footprint="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
+u1[1] += vin
+u1[5] += gnd
+```
+
+`Part.p[...]` is the same pin numbers. Do not use `Part.n[...]` here.
 
 `ERC()` before `generate_netlist(tool=KICAD)`. Attach unused pins to `NC`. Set `net.drive = POWER` on a supply net that is not driven by a `PWROUT` pin. A missing footprint aborts netlist generation. `ref`, `value`, and `footprint` are what the board file needs. Extra data that must survive in the netlist goes in `part.fields`.
 

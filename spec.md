@@ -23,7 +23,7 @@ This repo is a Pi package. Pi itself is installed on the GX10. Do not copy the P
 | `skills/circuit/schemas/`                       | Circuit spec and one simulation measurement                                                                                     |
 | `tests/`                                        | Runner contracts for circuit, parts, and layout. A design is checked with `pytest --design designs/<slug>`                      |
 | `skills/layout/schemas/constraints.schema.json` | Placement constraints                                                                                                           |
-| `prompts/`                                      | `/design`, `/parts`, `/layout`                                                                                                  |
+| `prompts/`                                      | `/design`, `/layout`                                                                                                            |
 | `requirements.txt`, `setup.sh`                  | SKiDL 2.3.0, KiCad MCP, Freerouting 2.5.0, Pi, and `uv`                                                                         |
 | `.pi/mcp.json`                                  | `kicad-schematic` and `kicad-pcb`                                                                                               |
 | `models.example.json`                           | Ollama endpoint for Nemotron                                                                                                    |
@@ -40,25 +40,24 @@ Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage 
 ### Example
 
 ```text
-/design 5 V supply to 3.3 V buck regulator using one buck regulator IC, a 10 µH inductor, a 10 µF input capacitor, a 100 nF input capacitor, and a 22 µF output capacitor, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 25 mm by 20 mm, JLCPCB. Ensure that the IC is in the design
+/design 5 V supply to 3.3 V buck regulator using one buck regulator IC, a 10 µH inductor, a 10 µF input capacitor, a 100 nF input capacitor, and a 22 µF output capacitor, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 25 mm by 20 mm, JLCPCB. Add the catch diode and feedback resistors the chosen IC requires.
 ```
 
 `/design` writes the SKiDL, runs the tests against that design's `circuit-spec.json`, and revises the SKiDL when a measurement misses. Then:
 
 ```text
-/parts
 /layout
 ```
 
-`/design` does not select the JLCPCB parts named in that sentence. `/parts` does, after the circuit passes. `/layout` writes constraints, then places, routes, and checks the board.
+`/design` selects the JLCPCB parts named in that sentence after ngspice passes, and writes `parts/board.net`. `/layout` writes constraints, then places, routes, and checks the board.
 
 ### 1. Circuit
 
 `/design` takes the request.
 
 1. The model writes a circuit spec that validates against `skills/circuit/schemas/circuit-spec.schema.json`. The spec keeps the original prompt and the acceptance numbers: supply and output voltage, gain, bandwidth, current, load, interfaces, preferred parts, package limits, board size, and manufacturing constraints. The `requirements` skill checks that spec. If a required value is missing, `/design` asks the user and does not write SKiDL until the user answers.
-2. The model chooses the architecture and writes one SKiDL simulation file, using `from skidl.pyspice import *`. It does not hand-write a SPICE deck.
-3. `/design` runs `.venv/bin/python -m pytest tests/test_verify.py --design designs/<slug>`. The test reads `designs/<slug>/design/circuit-spec.json` and runs `skills/circuit/verify.py` on that directory. The runner imports `design/skidl_sim.py`, calls `measure()`, and compares each measurement with that spec's targets and tolerances. It writes `design/simulation-results.json` and sets `status`. On a failure it prints the measured value, the target, and whether the measurement is high or low. A failed requirement fails pytest. The runner leaves no results file when the file crashes, `measure()` is missing, a measured field is missing, the spec has no tolerance for a measured field, or a returned number did not come from ngspice. A function that returns the spec targets is not a pass. The model does not judge the numbers. `/design` does not select catalog parts or emit coordinates.
+2. For a regulator, `/design` runs `skills/parts/choose_ic.py`. That writes `design/ic.json`: the catalog IC, its topology, and its KiCad pin names. A prompt that says LDO or linear selects an LDO. A prompt that says buck, boost, or switching selects that converter. A bare regulator allows either. An asynchronous buck or boost sets `external_diode`, and the simulation includes the catch diode the converter needs to regulate. An adjustable part records `feedback_voltage_v` for its divider. The model then writes one SKiDL simulation file, using `from skidl.pyspice import *`, and connects the passives to those pins. It does not hand-write a SPICE deck.
+3. `/design` runs `.venv/bin/python -m pytest tests/test_verify.py --design designs/<slug>`. The test reads `designs/<slug>/design/circuit-spec.json` and runs `skills/circuit/verify.py` on that directory. The runner imports `design/skidl_sim.py`, calls `measure()`, and compares each measurement with that spec's targets and tolerances. It writes `design/simulation-results.json` and sets `status`. On a failure it prints the measured value, the target, and whether the measurement is high or low. A failed requirement fails pytest. The runner leaves no results file when the file crashes, `measure()` is missing, a measured field is missing, the spec has no tolerance for a measured field, or a returned number did not come from ngspice. A function that returns the spec targets is not a pass. The model does not judge the numbers. `/design` does not emit coordinates.
 
 ```json
 {
@@ -70,19 +69,15 @@ Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage 
 }
 ```
 
-A failure stays inside `/design`. The model reads why the measurement missed and changes the SKiDL so the same tests pass. It does not change the spec to hide a failure. `/design` repeats the tests until pytest exits 0. That ends the circuit stage. A SPICE pass does not establish footprint mapping, placement, or routing.
+A failure stays inside `/design`. The model reads why the measurement missed and changes the SKiDL so the same tests pass. It does not change the spec to hide a failure. `/design` repeats the tests until pytest exits 0.
 
-### 2. Parts
+After pytest exits 0, `/design` searches the local JLCPCB cache, `.tools/jlcpcb/economic-parts.csv`, with the spec and the simulated parts, and writes `designs/<slug>/parts/`. The lookup keeps the IC in `design/ic.json`. The cache is basic and preferred parts downloaded once by `skills/parts/fetch_catalog.py`. A lookup does not use the network. `parts/parts.json` records the manufacturer part number, value, tolerance, voltage, current, power, package, stock, price, and basic or preferred status, plus a KiCad symbol and footprint copied from that cache and the installed KiCad 10 libraries. It does not invent stock, price, or footprint names.
 
-`/parts` starts this stage, from a circuit with passing simulation results.
+`parts/skidl_kicad.py` uses `from skidl import *` and `set_default_tool(KICAD)`. `skills/parts/netlist.py` runs `ERC()` and writes `parts/board.net`. A missing footprint aborts that netlist. If a selected part changes a value the spec measures, the simulation runs again. A SPICE pass does not establish placement or routing. That ends `/design`.
 
-`/parts` reads `designs/<slug>/design/` and writes `designs/<slug>/parts/`. It searches the local JLCPCB cache, `.tools/jlcpcb/economic-parts.csv`, with the spec and the simulated parts. The cache is basic and preferred parts downloaded once by `skills/parts/fetch_catalog.py`. A lookup does not use the network. `parts/parts.json` records the manufacturer part number, value, tolerance, voltage, current, power, package, stock, price, and basic or preferred status, plus a KiCad symbol and footprint copied from that cache and the installed KiCad 10 libraries. It does not invent stock, price, or footprint names.
+### 2. Layout
 
-`parts/skidl_kicad.py` uses `from skidl import *` and `set_default_tool(KICAD)`. `skills/parts/netlist.py` runs `ERC()` and writes `parts/board.net`. A missing footprint aborts that netlist. If a selected part changes a value the spec measures, the circuit stage runs again, with device models that match the selected parts.
-
-### 3. Layout
-
-`/layout` starts this stage, after part selection. It reads `designs/<slug>/design/` and `designs/<slug>/parts/`, and writes `designs/<slug>/layout/`.
+`/layout` starts this stage, after `/design` has written `parts/board.net`. It reads `designs/<slug>/design/` and `designs/<slug>/parts/`, and writes `designs/<slug>/layout/`.
 
 1. The model writes placement constraints that validate against `skills/layout/schemas/constraints.schema.json`: proximity, grouping, edge, keep-out, separation, loop area, high-current paths, differential pairs, and orientation. Constraints name parts by reference designator and nets by name. Distances are courtyard gaps. Edges are relative to the board outline, which is the placement's bounding box plus the edge clearance. `weight` is relative importance. `hard` means a violation is illegal. An optional `rules` object sets track width, clearance, vias, edge clearance, and the gap between parts; the defaults fit a JLCPCB 2-layer board. The model does not assign coordinates or draw traces.
 2. `/layout` runs `.venv/bin/python skills/layout/layout.py designs/<slug>`. The runner rejects constraints that fail the schema or name a part or net missing from `board.net`. It then adds general rules the file does not already cover and writes them back: connectors, switches, LEDs, and test points on a board edge; a decoupling capacitor within 2 mm of its IC; a soft group around each IC; a switching loop when an inductor and a diode are present; an inductor kept 5 mm from an amplifier, sensor, crystal, or ADC; supply, switch, and ground nets widened from `output_current_a`; and differential pairs matched within 5 mm. A constraint already in the file is kept. It reads each footprint's courtyard and pads from the installed KiCad libraries. The placer chooses coordinates and rotations. Its cost covers wire length, overlap, constraint violations, board area against `board_max_mm` from the circuit spec, and loop area. It starts force-directed, then runs simulated annealing.
@@ -91,13 +86,13 @@ A failure stays inside `/design`. The model reads why the measurement missed and
 
 A failed attempt goes back to the placer, with a new seed and more room between parts that no proximity or group constraint ties together. After four attempts the runner keeps the best attempt and writes `layout/report.json`. Exit 0 is a passing board. Exit 1 sets `return_to: "constraints"` with the reasons, and `/layout` revises `constraints.json` and runs again. Exit 2 means no board: a missing input, an invalid constraint, or a missing tool.
 
-`kicad-schematic` and `kicad-pcb` connect only while KiCad is open with its API server enabled. They inspect and edit the open board. They are not the placer or the router. Part selection copies a KiCad 10 symbol and footprint from the installed libraries when the catalog package matches a footprint file.
+`kicad-schematic` and `kicad-pcb` connect only while KiCad is open with its API server enabled. They inspect and edit the open board. They are not the placer or the router. Part selection copies a KiCad 10 symbol and footprint from the installed libraries. An exact package file is used when it exists. Otherwise the nearest footprint in that part's library is used. Layout does the same if a footprint named in the netlist is not on disk.
 
 ## Milestone
 
 Natural-language specification, generated circuit, automated SPICE verification.
 
-`/design` writes the spec and the SKiDL source, runs the tests, and repairs the SKiDL until they pass.
+`/design` writes the spec, the SKiDL source, the catalog parts, and `parts/board.net`. It repairs the SKiDL until the tests pass.
 
 ## Remaining work
 
@@ -105,15 +100,13 @@ Already implemented:
 
 - **Machine.** `./setup.sh`, `.venv`, and Pi. `~/.pi/agent/models.json` uses `http://127.0.0.1:11434/v1` and `nemotron-3-super:latest`. KiCad 10.0.7 is installed with its symbol and footprint libraries. Freerouting 2.5.0 for Linux ARM64 is in `.tools/freerouting`. `.pi/mcp.json` starts `kicad-schematic` and `kicad-pcb` while KiCad is open with the API server enabled.
 - **Circuit.** Each request is `designs/<slug>/design/`. The requirements check blocks SKiDL until the spec has measurable numbers. `/design` writes `circuit-spec.json` and `skidl_sim.py` there, then runs `.venv/bin/python -m pytest tests/test_verify.py --design designs/<slug>`. `skills/circuit/verify.py` calls `measure()`, writes `simulation-results.json` in that same folder, and on a miss prints the measured value, the target, and whether the result is high or low. A returned number that did not come from ngspice is not a result. `/design` revises `skidl_sim.py` until pytest exits 0. A plain pytest run does not sweep `designs/`. The regulator sentence has passed that loop, and so has one other circuit.
-- **Parts.** `/parts` reads `designs/<slug>/design/` and writes `designs/<slug>/parts/parts.json` from the local JLCPCB cache. `skills/parts/netlist.py` runs `parts/skidl_kicad.py` and writes `parts/board.net`. Stock, price, and footprint names come from the cache and the installed KiCad libraries.
+- **Parts.** `/design` runs `skills/parts/choose_ic.py` before the simulation and `skills/parts/lookup.py` after pytest exits 0. The lookup writes `designs/<slug>/parts/parts.json` from the local JLCPCB cache and keeps the IC in `design/ic.json`. `skills/parts/netlist.py` runs `parts/skidl_kicad.py` and writes `parts/board.net`. Stock, price, and footprint names come from the cache and the installed KiCad libraries.
 - **Layout.** `/layout` reads `design/` and `parts/`, writes `designs/<slug>/layout/constraints.json`, and runs `skills/layout/layout.py`. The runner places, builds the KiCad board, routes it with Freerouting, imports the session, runs DRC and the routed-width and skew checks, retries the placer, and writes `layout/report.json`. `tests/test_layout.py` covers the constraints, the placer, and an end-to-end LDO board from a SKiDL netlist that places, routes with no unrouted nets, and passes DRC.
 
 Still to build, in pipeline order:
 
-1. **Layout on a real design.** Run `/layout` on the regulator after `/parts` writes its `board.net`, and on one more circuit. Record whether the model's constraints are valid on the first try and how many runs it takes to pass.
+1. **Layout on a real design.** Run `/layout` on the regulator after `/design` writes its `board.net`, and on one more circuit. Record whether the model's constraints are valid on the first try and how many runs it takes to pass.
 2. **Manufacturing output.** Gerbers, drill files, BOM, and the position file from `board.kicad_pcb` with `kicad-cli pcb export`, in the shop's format.
-
-
 
 ## Open questions
 
@@ -121,5 +114,5 @@ Still to build, in pipeline order:
 - When is a constraint hard, and what happens when two hard constraints conflict?
 - Constraints name parts and nets. Should they also name functional blocks?
 - Does a simple placer get good enough once the constraints are good?
-- The runner sends every failure back to the placer up to four times, then to the constraint list. Should some DRC errors, such as a footprint problem, go straight to `/parts` instead?
+- The runner sends every failure back to the placer up to four times, then to the constraint list. Should some DRC errors, such as a footprint problem, go straight back to `/design` instead?
 

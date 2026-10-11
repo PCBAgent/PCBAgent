@@ -1,0 +1,36 @@
+{
+  "seed": 1,
+  "parts": {
+    "R1": {
+      "x": 21.475,
+      "y": 21.015,
+      "rotation": 0
+    },
+    "R2": {
+      "x": 21.9867,
+      "y": 23.6048,
+      "rotation": 270
+    }
+  },
+  "outline_mm": [
+    20.0,
+    20.0,
+    23.2617,
+    25.6298
+  ],
+  "board_mm": {
+    "width": 3.262,
+    "height": 5.63
+  },
+  "cost": 2.1338,
+  "terms": {
+    "wire_length": 1.7665,
+    "overlap": 0.0,
+    "board_area": 0.3673,
+    "board_size": 0.0,
+    "loop_area": 0.0,
+    "constraints": 0.0
+  },
+  "violations": [],
+  "legal": true
+}

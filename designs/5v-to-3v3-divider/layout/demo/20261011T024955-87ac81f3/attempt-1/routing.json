@@ -1,0 +1,22 @@
+{
+  "nets": {
+    "VOUT": {
+      "length_mm": 1.7655041630560342,
+      "min_width_mm": 0.25,
+      "body_min_width_mm": 0.25,
+      "segments": [
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.0024,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.7631,
+          "near_pad": false
+        }
+      ]
+    }
+  },
+  "vias": 0
+}

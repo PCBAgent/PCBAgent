@@ -41,14 +41,30 @@ def footprint_dir(job):
     raise SystemExit("no KiCad footprint library directory found")
 
 
-def load_footprint(root, fpid):
+def resolve_footprint(root, fpid):
+    """Library and footprint name. A missing file is replaced by the nearest name in that library."""
     if ":" not in fpid:
         raise SystemExit(f"footprint {fpid!r} is not Library:Name")
     library, name = fpid.split(":", 1)
     path = os.path.join(root, library + ".pretty")
+    if os.path.isfile(os.path.join(path, name + ".kicad_mod")):
+        return library, name
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "parts"))
+    from catalog import closest_footprint_name
+
+    stem = closest_footprint_name(name, path)
+    if not stem:
+        raise SystemExit(f"footprint {fpid} not found in {root}")
+    print(f"footprint {fpid} missing, using {library}:{stem}", file=sys.stderr)
+    return library, stem
+
+
+def load_footprint(root, fpid):
+    library, name = resolve_footprint(root, fpid)
+    path = os.path.join(root, library + ".pretty")
     footprint = pcbnew.FootprintLoad(path, name) if os.path.isdir(path) else None
     if footprint is None:
-        raise SystemExit(f"footprint {fpid} not found in {root}")
+        raise SystemExit(f"footprint {library}:{name} not found in {root}")
     return footprint
 
 
