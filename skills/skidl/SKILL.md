@@ -5,7 +5,7 @@ description: Write valid SKiDL Python for a circuit or its ngspice run. Use when
 
 # SKiDL
 
-SKiDL is Python that connects parts and then emits a netlist. Docs: https://devbisme.github.io/skidl/. SPICE details: https://github.com/devbisme/skidl/blob/master/tests/examples/spice-sim-intro/spice-sim-intro.ipynb.
+SKiDL is Python that connects parts and then emits a netlist. Docs: https://devbisme.github.io/skidl/. The SPICE section of that page points at the simulation notebook: https://github.com/devbisme/skidl/blob/master/tests/examples/spice-sim-intro/spice-sim-intro.ipynb. What `skidl.pyspice` puts in the namespace is https://devbisme.github.io/skidl/api/html/rst_output/skidl.pyspice.html.
 
 Write one file for simulation and, later, a separate file for the KiCad netlist. Do not mix the two imports in one file.
 
@@ -29,11 +29,22 @@ def measure():
     return {"output_voltage_v": float(op.nodes["vout"][0])}
 ```
 
-That import creates `gnd`, sets the tool to SKiDL, and defines SPICE parts as constructors (`R`, `C`, `V`, …). Build the circuit inside `measure()`, not at module level. `reset()` clears any circuit already built in this process. `generate_netlist()` returns an InSpice circuit. `print` that object to get the SPICE deck. Read a node with `node(pin_or_net)`.
+Keep that import. Do not replace it with a list of names. `from skidl.pyspice import *` is what defines `reset`, `gnd`, `Net`, the part constructors, `DeviceModel`, `Simulator`, `generate_netlist`, and every unit. A named import drops whichever of those you left off, and the next pytest error is `NameError` for `reset`, `gnd`, or a unit. Put the star import back. Do not add the missing names one at a time.
+
+That import creates `gnd` as SPICE node `0`. Use that `gnd`. Do not write `gnd = Net("GND")`; that is a different node and the sources no longer connect to ground. It also sets the tool to SKiDL and defines SPICE parts as constructors (`R`, `C`, `L`, `V`, `PULSEV`, …). Build the circuit inside `measure()`, not at module level. `reset()` clears any circuit already built in this process. `generate_netlist()` returns an InSpice circuit. `print` that object to get the SPICE deck. Read a node with `node(pin_or_net)`.
 
 Simulate with `Simulator.factory().simulation(circuit)`. `circuit.simulator()` is removed and raises `NameError`. The simulation object has `operating_point()`, `dc(...)`, `ac(...)`, and `transient(step_time=..., end_time=...)`. Results are indexed by lowercase net name, such as `analysis.nodes["vout"]`, and source currents by lowercase source name, such as `analysis.branches["vs"]`. A source that delivers power reads negative. For a load current, measure the voltage across the load resistor and divide by its resistance. Convert each measurement with `float(...)` before returning it. For a switching circuit, measure the average over the last part of a transient run, after the output settles.
 
-Set values with InSpice units: `1 @ u_kOhm`, `100 @ u_nF`, `5 @ u_V`, `1 @ u_ms`.
+Set values with InSpice units, the same names as the simulation notebook. The letter before the unit is the prefix, and `u` means micro: `5 @ u_V` is 5 volts, `5 @ u_uV` is 5 microvolts. For this regulator, `10 @ u_uH` is 10 µH, `10 @ u_uF` is 10 µF, `100 @ u_nF` is 100 nF, `22 @ u_uF` is 22 µF, `33 @ u_Ohm` is 33 ohms, and `6.6 @ u_us` is 6.6 µs. `10 @ u_H` is 10 henries, not 10 µH.
+
+| Value | Unit |
+|---|---|
+| volt, microvolt | `u_V`, `u_uV` |
+| ohm, kilohm | `u_Ohm`, `u_kOhm` |
+| farad, microfarad, nanofarad | `u_F`, `u_uF`, `u_nF` |
+| henry, microhenry | `u_H`, `u_uH` |
+| second, millisecond, microsecond | `u_s`, `u_ms`, `u_us` |
+| hertz, kilohertz | `u_Hz`, `u_kHz` |
 
 Parts you can call, with their pins:
 
@@ -57,7 +68,11 @@ S(model=sw_model)["ip", "in", "op", "on"] += gate, gnd, vin, switch
 D(model=DeviceModel("D", "D"))["p", "n"] += gnd, switch
 ```
 
-Drive `gate` with `PULSEV`. A Python line that starts with `.model` is a syntax error. Fix that syntax. Do not delete the circuit and return the spec targets instead. The runner rejects a returned number that did not come from the analysis, including a simulated value multiplied back to the spec target. Return the node voltage, `sum(samples) / len(samples)` for a waveform, or the load voltage divided by the load resistance.
+Drive `gate` with `PULSEV`, as the notebook does: `PULSEV(initial_value=0, pulsed_value=5 @ u_V, pulse_width=1 @ u_ms, period=2 @ u_ms)`. `pulse_width` and `period` are the on-time and the repeat time. A 100 kHz switch is `period=10 @ u_us`. A duty of 0.66 is `pulse_width=6.6 @ u_us`. `V` does not take those arguments.
+
+A behavioral buck is that pulse on `gate`, the switch from `vin` to the switch node, the diode from `gnd` to the switch node, `L` from the switch node to `vout`, both input capacitors from `vin` to `gnd`, and the output capacitor and the load resistor from `vout` to `gnd`. The load is the spec load. A 22 µF capacitor into 33 ohms settles in about a millisecond, so a transient of a few hundred microseconds has not settled. Run long enough for the output to settle, then average the last part.
+
+A Python line that starts with `.model` is a syntax error. Fix that syntax. Do not delete the circuit and return the spec targets instead. The runner rejects a returned number that did not come from the analysis, including a simulated value multiplied back to the spec target. Return the node voltage, `sum(samples) / len(samples)` for a waveform, or the load voltage divided by the load resistance.
 
 For a vendor `.lib` subcircuit, load it with `Part(lib, name)` after appending its directory to `lib_search_paths[SPICE]`, then alias the pins from the symbol file before connecting them. ngspice often rejects unmodified PSPICE or LTspice libraries.
 

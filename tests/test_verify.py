@@ -354,6 +354,50 @@ def test_runner_fails_real_simulation_off_target(tmp_path):
     assert result["status"] == "fail"
 
 
+def diode_sim(first, second):
+    return f'''from skidl.pyspice import *
+
+
+def measure():
+    reset()
+    vin = Net("VIN")
+    vout = Net("VOUT")
+    V(ref="VS", dc_value=5 @ u_V)["p", "n"] += vin, gnd
+    R(value=1 @ u_kOhm)["p", "n"] += vin, vout
+    D(model={first})["p", "n"] += vout, gnd
+    D(model={second})["p", "n"] += vout, gnd
+    op = Simulator.factory().simulation(generate_netlist()).operating_point()
+    return {{"output_voltage_v": float(op.nodes["vout"][0])}}
+'''
+
+
+def test_runner_allows_parts_sharing_one_model(tmp_path):
+    sim = diode_sim("m", "m").replace("    D(", "    m = DeviceModel('MYDIODE', 'D', IS=1e-9)\n    D(", 1)
+    folder = make_design(tmp_path, measured_spec(output_voltage_v=(0.6, 0.5)), sim)
+    proc = run_verify(folder, tmp_path)
+    assert proc.returncode == 0, proc.stderr
+
+
+def test_runner_names_conflicting_models(tmp_path):
+    sim = diode_sim("DeviceModel('D', 'D', IS=1e-9)", "DeviceModel('D', 'D', IS=1e-12)")
+    folder = make_design(tmp_path, measured_spec(output_voltage_v=(0.6, 0.5)), sim)
+    proc = run_verify(folder, tmp_path)
+    assert proc.returncode == 2
+    assert "unique name" in proc.stderr
+
+
+def test_runner_crash_report_is_short(tmp_path):
+    sim = DIVIDER_SIM.replace("6.8 @ u_kOhm", "6.8 @ u_kohm")
+    folder = make_design(tmp_path, divider_spec(2.0), sim)
+    proc = run_verify(folder, tmp_path)
+    assert proc.returncode == 2
+    assert "WARNING" not in proc.stderr
+    assert "skidl_sim.py line" in proc.stderr
+    assert "NameError: name 'u_kohm' is not defined" in proc.stderr
+    assert "Hint: Unit names are case-sensitive" in proc.stderr
+    assert len(proc.stderr) < 800
+
+
 def test_verify_design(design):
     spec_path = design / "design" / "circuit-spec.json"
     spec = json.loads(spec_path.read_text())

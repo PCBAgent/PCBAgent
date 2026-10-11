@@ -29,13 +29,31 @@ Size `track_width_mm` from the current. IPC-2221, 1 oz outer copper, 10 °C rise
 
 The board size limit comes from `board_max_mm` in `design/circuit-spec.json`. The board may be rotated to fit it.
 
+## Rules the runner adds
+
+Shop rules in `place.py` apply to every board: 0.25 mm tracks, 0.15 mm minimum, 0.2 mm clearance, 0.6/0.3 mm vias, 0.5 mm copper-to-edge, and 0.5 mm between courtyards. DRC rejects shorts, clearance errors, copper past the outline, and unrouted nets. Warnings, such as silkscreen clipped by the edge, do not fail the board.
+
+After `constraints.json` validates, the runner adds general rules the file does not already cover and writes them back into that file:
+
+| Rule | What it adds |
+|---|---|
+| `board_edge`, hard, 0.5 mm | Connectors, switches, LEDs, and test points. Edges are assigned left, right, top, bottom |
+| `proximity`, hard, 2 mm | A capacitor from a supply net to ground, next to the IC on that net, or the switch transistor when there is no IC |
+| `group`, soft, 3 mm | Each IC and the passives on its nets |
+| `loop_area`, soft | The input capacitor, switch, and diode when the board has an inductor and a diode |
+| `separation`, soft, 5 mm | An inductor and a sensitive part: amplifier, sensor, crystal, or ADC |
+| `high_current` | Supply, output, switch, and ground nets, when `output_current_a` needs copper wider than 0.25 mm. Width is about 0.3 mm at 1 A, 0.8 mm at 2 A, and 1.3 mm at 3 A |
+| `differential_pair`, 5 mm skew | Nets named as a pair, such as `D+`/`D-` or `USB_D_P`/`USB_D_N` |
+
+A rule already in the file is left as written. On exit 1, loosen one of these the same way as a rule you wrote.
+
 ## Run
 
 ```bash
 .venv/bin/python skills/layout/layout.py designs/<slug>
 ```
 
-The runner validates `constraints.json`, reads footprint courtyards and pads from the installed KiCad libraries, and places the parts: force-directed start, then simulated annealing over wire length, overlap, constraint violations, board area, and loop area. KiCad builds `placed.kicad_pcb` and exports `board.dsn`. Freerouting writes `board.ses`. KiCad imports it as `board.kicad_pcb`. `kicad-cli pcb drc` checks design rules, clearance, the board edge, and unrouted nets. The runner also checks each `high_current` net's routed width and each `differential_pair` skew.
+The runner validates `constraints.json`, reads footprint courtyards and pads from the installed KiCad libraries, and places the parts: force-directed start, then simulated annealing over wire length, overlap, constraint violations, board area, and loop area. KiCad builds `placed.kicad_pcb` and exports `board.dsn`. Freerouting writes `board.ses`. KiCad imports it as `board.kicad_pcb`. `placement.png` is the 2D board view of `placed.kicad_pcb` before routing: copper, silk, courtyard, fabrication, and the outline. `board.png` is the 3D view of the routed board. `kicad-cli pcb drc` checks design rules, clearance, the board edge, and unrouted nets. The runner also checks each `high_current` net's routed width and each `differential_pair` skew.
 
 A failed attempt goes back to the placer: a new seed, and more room between parts that no `proximity` or `group` ties together. After four attempts the runner keeps the best one in `designs/<slug>/layout/` and writes `report.json`.
 
@@ -44,3 +62,10 @@ Exit 0 means the board passed. Exit 1 means a board or placement exists but a ch
 `high_current` allows a narrower trace within 1 mm of a pad on that net, where fine-pitch pins force it. `report.json` lists that length as `necked_near_pads_mm`. DRC warnings, such as silkscreen clipped by the board edge, are reported and do not fail the board.
 
 Do not edit `board.kicad_pcb`, `placement.json`, or `report.json` by hand. Do not claim a check passed unless `report.json` says so.
+
+When the user asks to demonstrate placement and routing, add `--demo` to the layout command.
+It records stage results and opens an animated copy in KiCad 10 with its API enabled. Replay with
+`.venv/bin/python skills/layout/demo.py designs/<slug> --replay`; use `--speed 2` for faster playback.
+This animation presents calculated results, not the optimizer's decision history. Runs from SSH
+without a desktop still save the recording for later replay. Connection errors are in the run's
+`layout/demo/<run-id>/playback.log`; the layout pipeline continues independently.

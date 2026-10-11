@@ -263,6 +263,24 @@ def _install():
     if getattr(skidl, "generate_netlist", None) is original_netlist:
         skidl.generate_netlist = generate_netlist
 
+    from InSpice.Spice.DeviceModel import DeviceModel as SpiceModel
+    from InSpice.Spice.Netlist import Netlist
+
+    original_model = Netlist.model
+
+    # SKiDL registers a part's model once per part, so two parts sharing one DeviceModel collide.
+    def model(self, name, modele_type, **parameters):
+        existing = self._models.get(str(name))
+        if existing is None:
+            return original_model(self, name, modele_type, **parameters)
+        if str(existing) == str(SpiceModel(name, modele_type, **parameters)):
+            return existing
+        raise NameError(
+            f"Two DeviceModels are named {name} with different parameters. Give each one a unique name."
+        )
+
+    Netlist.model = model
+
 
 def run(path):
     _install()

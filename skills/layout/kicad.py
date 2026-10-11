@@ -5,12 +5,15 @@
     kicad.py build <job.json>                   placed board with nets and outline
     kicad.py rules <job.json>                   design rules and netclasses, then Specctra .dsn
     kicad.py import <board> <session> <out> <stats.json>   routed board from a Freerouting .ses
+    kicad.py scene <board> <out.json>         exact geometry for demo playback
+    kicad.py demo-prepare <board> <out>       disposable board with staged components
 
 build and rules are separate processes. pcbnew only writes a board's .kicad_pro, where KiCad keeps design
 rules, when the board was loaded from disk in a process that has not built a board in memory.
 """
 
 import json
+import math
 import os
 import sys
 
@@ -204,6 +207,65 @@ def import_session(board_path, session_path, out_path, stats_path):
         json.dump({"nets": stats, "vias": vias}, handle, indent=2)
 
 
+def scene(board_path, out_path):
+    """Export exact integer-nanometer geometry for presentation, never rounded stats."""
+    board = pcbnew.LoadBoard(board_path)
+    point = lambda p: [int(p.x), int(p.y)]
+    parts = {}
+    for fp in board.GetFootprints():
+        parts[fp.GetReference()] = {"position": point(fp.GetPosition()),
+                                   "rotation": fp.GetOrientationDegrees(),
+                                   "pads": sorted([{"number": p.GetNumber(), "net": p.GetNetname(),
+                                                    "position": point(p.GetPosition())} for p in fp.Pads()],
+                                                  key=lambda p: (p["number"], p["position"]))}
+    outline = [{"start": point(s.GetStart()), "end": point(s.GetEnd()), "width": s.GetWidth()}
+               for s in board.GetDrawings() if s.GetLayer() == pcbnew.Edge_Cuts]
+    tracks = []
+    for track in board.GetTracks():
+        kind = track.GetClass()
+        item = {"kind": kind, "net": track.GetNetname(),
+                "width": track.GetWidth(track.TopLayer()) if kind == "PCB_VIA" else track.GetWidth()}
+        if item["kind"] == "PCB_VIA":
+            item.update(position=point(track.GetPosition()), drill=track.GetDrillValue(),
+                        layers=[board.GetLayerName(track.TopLayer()), board.GetLayerName(track.BottomLayer())],
+                        via_type="THROUGH" if track.GetViaType() == pcbnew.VIATYPE_THROUGH else
+                                 "MICRO" if track.GetViaType() == pcbnew.VIATYPE_MICROVIA else "BLIND_BURIED")
+        else:
+            item.update(start=point(track.GetStart()), end=point(track.GetEnd()), layer=board.GetLayerName(track.GetLayer()))
+            if item["kind"] == "PCB_ARC":
+                item["mid"] = point(track.GetMid())
+        tracks.append(item)
+    with open(out_path, "w", encoding="utf-8") as handle:
+        json.dump({"version": 1, "units": "nm", "parts": parts, "outline": outline, "tracks": tracks}, handle)
+
+
+def demo_prepare(board_path, out_path):
+    """Create a disposable staged board. The source board is read-only."""
+    board = pcbnew.LoadBoard(board_path)
+    for track in list(board.GetTracks()):
+        board.Remove(track)
+    footprints = sorted(board.GetFootprints(), key=lambda f: f.GetReference())
+    box = board.GetBoardEdgesBoundingBox()
+    # One square grid alongside the board; cell size accommodates the largest part.
+    cell = max([mm(5)] + [max(fp.GetBoundingBox(False).GetWidth(), fp.GetBoundingBox(False).GetHeight()) + mm(3)
+                          for fp in footprints])
+    columns = max(1, math.ceil(math.sqrt(len(footprints))))
+    for index, fp in enumerate(footprints):
+        fp.SetOrientationDegrees(0)
+        fp.SetPosition(pcbnew.VECTOR2I(box.GetX() - (columns - index % columns) * cell,
+                                     box.GetY() + (index // columns) * cell))
+    for offset, message in [(5, "PCBAgent demo - animated results"), (2, "Preparing placement...")]:
+        text = pcbnew.PCB_TEXT(board)
+        text.SetText(message)
+        text.SetLayer(pcbnew.Dwgs_User)
+        text.SetPosition(pcbnew.VECTOR2I(box.GetX(), box.GetY() - mm(offset)))
+        text.SetTextSize(pcbnew.VECTOR2I(mm(0.8), mm(0.8)))
+        text.SetTextThickness(mm(0.12))
+        text.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_LEFT)
+        board.Add(text)
+    pcbnew.SaveBoard(out_path, board)
+
+
 def main():
     command = sys.argv[1] if len(sys.argv) > 1 else ""
     if command == "footprints" and len(sys.argv) == 4:
@@ -214,6 +276,10 @@ def main():
         rules(sys.argv[2])
     elif command == "import" and len(sys.argv) == 6:
         import_session(*sys.argv[2:6])
+    elif command == "scene" and len(sys.argv) == 4:
+        scene(*sys.argv[2:4])
+    elif command == "demo-prepare" and len(sys.argv) == 4:
+        demo_prepare(*sys.argv[2:4])
     else:
         print(__doc__, file=sys.stderr)
         return 2

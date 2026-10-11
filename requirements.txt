@@ -1,4 +1,5 @@
 skidl==2.3.0
 kicad-mcp==0.1.6
+kicad-python==0.8.0
 mcp[cli]>=1.3.0,<2
 pytest>=8

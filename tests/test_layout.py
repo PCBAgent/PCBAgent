@@ -29,6 +29,7 @@ from place import (  # noqa: E402
     rotate,
     semantic_errors,
 )
+from rules import apply_general_rules, copper_width_mm  # noqa: E402
 
 FIXTURE = ROOT / "tests" / "fixtures" / "layout" / "ldo.net"
 SCHEMA = json.loads((LAYOUT / "schemas" / "constraints.schema.json").read_text())
@@ -86,6 +87,8 @@ def test_parse_netlist_reads_skidl_kicad_netlist():
     refs = {c["ref"]: c for c in netlist["components"]}
     assert set(refs) == {"C1", "C2", "D1", "J1", "J2", "R1", "U1"}
     assert refs["U1"]["footprint"] == "Package_TO_SOT_SMD:SOT-23-5"
+    assert refs["D1"]["part"] == "LED"
+    assert refs["D1"]["description"] == "Light emitting diode"
     assert sorted(netlist["nets"]["VIN"]) == [("C1", "1"), ("J1", "1"), ("U1", "1"), ("U1", "3")]
 
 
@@ -133,6 +136,99 @@ def test_semantic_errors_check_rules():
     netlist = parse_netlist(FIXTURE.read_text())
     errors = semantic_errors({"rules": {"track_width_mm": 0.2, "min_track_width_mm": 0.3}, "constraints": []}, netlist)
     assert errors == ["rules: min_track_width_mm is larger than track_width_mm"]
+
+
+def test_copper_width_follows_ipc2221():
+    assert copper_width_mm(0.1) is None
+    assert copper_width_mm(1) == 0.3
+    assert copper_width_mm(2) == 0.8
+    assert copper_width_mm(3) == 1.3
+
+
+def test_general_rules_cover_io_decoupling_and_supply_width():
+    netlist = parse_netlist(FIXTURE.read_text())
+    merged, added = apply_general_rules({"constraints": []}, netlist, {"output_current_a": 2})
+    jsonschema.validate(merged, SCHEMA)
+    edges = {c["component"]: c["preferred_edge"] for c in merged["constraints"] if c["type"] == "board_edge"}
+    assert edges == {"J1": "left", "J2": "right", "D1": "top"}
+    assert all(c["hard"] for c in merged["constraints"] if c["type"] == "board_edge")
+    proximity = next(c for c in merged["constraints"] if c["type"] == "proximity")
+    assert proximity["components"][0] == "U1"
+    assert set(proximity["components"]) == {"U1", "C1", "C2"}
+    assert proximity["hard"] is True and proximity["max_distance_mm"] == 2
+    high = next(c for c in merged["constraints"] if c["type"] == "high_current")
+    assert high["track_width_mm"] == 0.8
+    assert set(high["nets"]) == {"VIN", "VOUT", "GND"}
+    assert added == merged["constraints"]
+
+
+def test_general_rules_keep_constraints_the_model_wrote():
+    netlist = parse_netlist(FIXTURE.read_text())
+    merged, added = apply_general_rules(LDO_CONSTRAINTS, netlist, {})
+    edges = [c for c in merged["constraints"] if c["type"] == "board_edge" and c.get("component") == "J1"]
+    assert edges == [{"type": "board_edge", "component": "J1", "preferred_edge": "left", "hard": True}]
+    proximity = [c for c in merged["constraints"] if c["type"] == "proximity" and "C1" in c["components"]]
+    assert len(proximity) == 1 and proximity[0]["max_distance_mm"] == 1.5
+    assert any(c["type"] == "board_edge" and c.get("component") == "D1" for c in added)
+    assert not any(c["type"] == "high_current" for c in added)
+    jsonschema.validate(merged, SCHEMA)
+
+
+def test_general_rules_are_idempotent():
+    netlist = parse_netlist(FIXTURE.read_text())
+    once, _ = apply_general_rules({"constraints": []}, netlist, {"output_current_a": 2})
+    twice, added = apply_general_rules(once, netlist, {"output_current_a": 2})
+    assert added == []
+    assert twice["constraints"] == once["constraints"]
+
+
+def _part(ref, value, description, part):
+    return {"ref": ref, "value": value, "description": description, "footprint": "Chip:Small", "lib": "Device", "part": part}
+
+
+def test_general_rules_add_a_switch_loop_a_pair_and_leave_a_power_diode_inside():
+    netlist = {
+        "components": [
+            _part("U1", "buck", "buck regulator", "U"),
+            _part("L1", "10uH", "Inductor", "L"),
+            _part("D1", "SS34", "Schottky diode", "D"),
+            _part("C1", "10uF", "Unpolarized capacitor", "C"),
+            _part("C2", "22uF", "Unpolarized capacitor", "C"),
+            _part("U2", "opamp", "operational amplifier", "U"),
+            _part("J1", "USB", "USB connector", "Conn"),
+        ],
+        "nets": {
+            "VIN": [("U1", "1"), ("C1", "1"), ("J1", "1")],
+            "GND": [("U1", "2"), ("C1", "2"), ("C2", "2"), ("D1", "2"), ("J1", "2")],
+            "SW": [("U1", "3"), ("L1", "1"), ("D1", "1")],
+            "VOUT": [("L1", "2"), ("C2", "1"), ("U1", "4")],
+            "USB_D_P": [("J1", "3"), ("U2", "1")],
+            "USB_D_N": [("J1", "4"), ("U2", "2")],
+        },
+    }
+    merged, _ = apply_general_rules({"constraints": []}, netlist, {"output_current_a": 1})
+    jsonschema.validate(merged, SCHEMA)
+    assert all(c.get("component") != "D1" for c in merged["constraints"] if c["type"] == "board_edge")
+    loop = next(c for c in merged["constraints"] if c["type"] == "loop_area")
+    assert loop["components"] == ["C1", "U1", "D1"]
+    pair = next(c for c in merged["constraints"] if c["type"] == "differential_pair")
+    assert pair["nets"] == ["USB_D_P", "USB_D_N"] and pair["max_skew_mm"] == 5
+    apart = next(c for c in merged["constraints"] if c["type"] == "separation")
+    assert apart["components"] == ["L1"] and "U2" in apart["from"] and apart["min_distance_mm"] == 5
+    high = next(c for c in merged["constraints"] if c["type"] == "high_current")
+    assert high["track_width_mm"] == 0.3
+    assert "SW" in high["nets"] and "USB_D_P" not in high["nets"]
+
+
+def test_generated_rules_place_without_a_hard_miss():
+    netlist = synthetic_netlist()
+    for comp in netlist["components"]:
+        comp.setdefault("value", "")
+        comp.setdefault("description", "")
+    merged, _ = apply_general_rules({"constraints": []}, netlist, {"output_current_a": 0.1})
+    problem = Problem(netlist, GEOMETRY, merged, None)
+    result = place(problem, seed=1, steps=6000)
+    assert result["legal"], result["violations"]
 
 
 # Placer
@@ -318,7 +414,7 @@ def test_ldo_board_places_routes_and_passes(tmp_path):
     proc = run_layout(root)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     layout = root / "layout"
-    for name in ("placement.json", "placed.kicad_pcb", "board.dsn", "board.ses", "board.kicad_pcb", "board.kicad_pro", "drc.json", "report.json"):
+    for name in ("placement.json", "placed.kicad_pcb", "placement.png", "board.dsn", "board.ses", "board.kicad_pcb", "board.kicad_pro", "board.png", "drc.json", "report.json"):
         assert (layout / name).is_file(), name
     report = json.loads((layout / "report.json").read_text())
     assert report["status"] == "pass"

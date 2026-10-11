@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Place, route, and check a board from designs/<slug>/parts/board.net and designs/<slug>/layout/constraints.json.
 
-Writes designs/<slug>/layout/: placement.json, placed.kicad_pcb, board.dsn, board.ses, board.kicad_pcb, drc.json, report.json.
+Writes designs/<slug>/layout/: placement.json, placed.kicad_pcb, placement.png, board.dsn, board.ses, board.kicad_pcb, board.png, drc.json, report.json.
 Exit 0 when every check passes, 1 when the board was built but a check failed, 2 when there is no board.
 """
 
+import argparse
 import json
 import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import jsonschema
@@ -17,6 +19,7 @@ import jsonschema
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from place import LayoutError, Problem, parse_netlist, place, rules_from, semantic_errors  # noqa: E402
+from rules import apply_general_rules  # noqa: E402
 
 
 HERE = Path(__file__).resolve().parent
@@ -193,7 +196,7 @@ def routed_checks(constraints, stats):
     return checks
 
 
-def attempt_board(work, problem, netlist, constraints, rules, seed, tools):
+def attempt_board(work, problem, netlist, constraints, rules, seed, tools, recorder=None):
     """Place, build, route, import, and check once. Return the attempt record."""
     work.mkdir(parents=True, exist_ok=True)
     record = {"seed": seed, "extra_gap_mm": problem.extra_gap, "reasons": []}
@@ -225,6 +228,8 @@ def attempt_board(work, problem, netlist, constraints, rules, seed, tools):
     (work / "job.json").write_text(json.dumps(job, indent=2))
     run_kicad(tools["python"], ["build", work / "job.json"], work)
     run_kicad(tools["python"], ["rules", work / "job.json"], work)
+    if recorder:
+        recorder.emit("placement-ready", seed, work, "placed.kicad_pcb")
     dsn = work / "board.dsn"
     dsn.write_text(strip_outlines(dsn.read_text()))
 
@@ -247,6 +252,8 @@ def attempt_board(work, problem, netlist, constraints, rules, seed, tools):
         return record
 
     run_kicad(tools["python"], ["import", work / "placed.kicad_pcb", session, work / "board.kicad_pcb", work / "routing.json"], work)
+    if recorder:
+        recorder.emit("routing-ready", seed, work, "board.kicad_pcb")
     drc_path = work / "drc.json"
     subprocess.run(
         [tools["kicad_cli"], "pcb", "drc", "--format", "json", "--severity-all", "--units", "mm", "-o", str(drc_path), str(work / "board.kicad_pcb")],
@@ -271,7 +278,127 @@ def attempt_board(work, problem, netlist, constraints, rules, seed, tools):
     for check in checks:
         if check["status"] == "fail":
             record["reasons"].append(f"{check['type']} check failed: {json.dumps(check)}")
+    if recorder:
+        recorder.emit("check-result", seed, work, status="pass" if not record["reasons"] else "fail",
+                      reasons=record["reasons"])
     return record
+
+
+def render_view(layout, kicad, source_name, image_name):
+    source = layout / source_name
+    if not source.is_file():
+        return None
+    image = (layout / image_name).resolve()
+    proc = subprocess.run(
+        [
+            kicad, "pcb", "render",
+            "--output", str(image),
+            "--width", "1600",
+            "--height", "1200",
+            "--side", "top",
+            "--background", "opaque",
+            "--quality", "basic",
+            str(source.resolve()),
+        ],
+        cwd=layout,
+        capture_output=True,
+        text=True,
+        timeout=KICAD_TIMEOUT_S,
+    )
+    if proc.returncode != 0 or not image.is_file():
+        detail = (proc.stderr or proc.stdout).strip()
+        raise NoBoard(f"kicad-cli pcb render wrote no {image.name}\n{detail}")
+    return image.name
+
+
+LAYOUT_LAYERS = "F.Cu,B.Cu,F.SilkS,B.SilkS,Edge.Cuts,F.CrtYd,F.Fab"
+PLOT_BACKGROUND = "#1a1a1a"
+CROP_PNG = r"""
+import sys
+from PIL import Image
+image = Image.open(sys.argv[1]).convert("RGB")
+color = sys.argv[3].lstrip("#")
+background = tuple(int(color[i:i + 2], 16) for i in (0, 2, 4))
+width, height = image.size
+pixels = image.load()
+min_x, min_y, max_x, max_y = width, height, 0, 0
+found = False
+for y in range(height):
+    for x in range(width):
+        red, green, blue = pixels[x, y]
+        if all(abs(channel - target) <= 8 for channel, target in zip((red, green, blue), background)):
+            continue
+        found = True
+        min_x, min_y = min(min_x, x), min(min_y, y)
+        max_x, max_y = max(max_x, x), max(max_y, y)
+if not found:
+    image.save(sys.argv[2])
+    raise SystemExit
+pad = 32
+box = (max(0, min_x - pad), max(0, min_y - pad), min(width, max_x + pad + 1), min(height, max_y + pad + 1))
+image.crop(box).save(sys.argv[2])
+"""
+
+
+def plot_layout(layout, kicad, source_name, image_name):
+    """Write a 2D board plot: copper, silk, courtyard, fabrication, and the outline."""
+    source = layout / source_name
+    if not source.is_file():
+        return None
+    image = (layout / image_name).resolve()
+    with tempfile.TemporaryDirectory() as scratch:
+        scratch = Path(scratch)
+        pdf = scratch / "plot.pdf"
+        proc = subprocess.run(
+            [
+                kicad, "pcb", "export", "pdf",
+                "--mode-single", "--scale", "0",
+                "--output", str(pdf),
+                "--layers", LAYOUT_LAYERS,
+                "--bg-color", PLOT_BACKGROUND,
+                str(source.resolve()),
+            ],
+            cwd=layout,
+            capture_output=True,
+            text=True,
+            timeout=KICAD_TIMEOUT_S,
+        )
+        if proc.returncode != 0 or not pdf.is_file():
+            detail = (proc.stderr or proc.stdout).strip()
+            raise NoBoard(f"kicad-cli pcb export pdf wrote no plot for {source_name}\n{detail}")
+        raw = scratch / "plot"
+        proc = subprocess.run(
+            ["pdftoppm", "-png", "-r", "140", "-singlefile", str(pdf), str(raw)],
+            capture_output=True,
+            text=True,
+            timeout=KICAD_TIMEOUT_S,
+        )
+        plotted = scratch / "plot.png"
+        if proc.returncode != 0 or not plotted.is_file():
+            detail = (proc.stderr or proc.stdout).strip()
+            raise NoBoard(f"pdftoppm wrote no placement plot\n{detail}")
+        crop = subprocess.run(
+            [sys.executable, "-c", CROP_PNG, str(plotted), str(image), PLOT_BACKGROUND],
+            capture_output=True,
+            text=True,
+            timeout=KICAD_TIMEOUT_S,
+        )
+        if crop.returncode != 0 or not image.is_file():
+            detail = (crop.stderr or crop.stdout).strip()
+            raise NoBoard(f"could not crop {image.name}\n{detail}")
+    return image.name
+
+
+def render_board(layout, kicad):
+    """Write placement.png, the 2D layout before routing, then board.png of the routed board."""
+    images = []
+    placed = plot_layout(layout, kicad, "placed.kicad_pcb", "placement.png")
+    if placed:
+        images.append(placed)
+    routed = render_view(layout, kicad, "board.kicad_pcb", "board.png")
+    if routed:
+        images.append(routed)
+    return images or None
 
 
 def badness(record):
@@ -281,7 +408,24 @@ def badness(record):
     return (stage_rank, unrouted, errors, len(record["reasons"]))
 
 
-def run(root):
+def run(root, demo=False, speed=1, demo_launch=True):
+    recorder = None
+    if demo:
+        from demo_record import Recorder
+        try:
+            recorder = Recorder(root, kicad_python(), launch=demo_launch, speed=speed)
+            print(f"Demo recording: {recorder.path}", file=sys.stderr)
+        except Exception as error:
+            print(f"Demo unavailable: {error}. Layout continues.", file=sys.stderr)
+    try:
+        return _run(root, recorder)
+    except BaseException as error:
+        if recorder:
+            recorder.emit("aborted", message=str(error) or type(error).__name__)
+        raise
+
+
+def _run(root, recorder=None):
     netlist_path = root / "parts" / "board.net"
     constraints_path = root / "layout" / "constraints.json"
     spec_path = root / "design" / "circuit-spec.json"
@@ -304,9 +448,16 @@ def run(root):
     if problems:
         raise NoBoard("constraints.json:\n" + "\n".join(problems))
 
-    board_max = None
+    spec = {}
     if spec_path.is_file():
-        board_max = json.loads(spec_path.read_text(encoding="utf-8")).get("board_max_mm")
+        spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    constraints, general_rules = apply_general_rules(constraints, netlist, spec)
+    problems = semantic_errors(constraints, netlist)
+    if problems:
+        raise NoBoard("constraints.json:\n" + "\n".join(problems))
+    if general_rules:
+        constraints_path.write_text(json.dumps(constraints, indent=2) + "\n", encoding="utf-8")
+    board_max = spec.get("board_max_mm")
 
     tools = {"python": kicad_python(), "kicad_cli": kicad_cli(), "freerouting": freerouting_cli()}
     layout = root / "layout"
@@ -323,10 +474,14 @@ def run(root):
     attempts = []
     for attempt in range(MAX_ATTEMPTS):
         problem = Problem(netlist, geometry, constraints, board_max, extra_gap_mm=GAP_STEP_MM * attempt)
-        record = attempt_board(work_root / f"attempt-{attempt + 1}", problem, netlist, constraints, rules, attempt + 1, tools)
+        work = work_root / f"attempt-{attempt + 1}"
+        record = attempt_board(work, problem, netlist, constraints, rules, attempt + 1, tools, recorder)
         record["attempt"] = attempt + 1
         record["status"] = "pass" if not record["reasons"] else "fail"
         attempts.append(record)
+        if recorder:
+            recorder.emit("attempt-result", attempt + 1, work, status=record["status"],
+                          stage=record["stage"], reasons=record["reasons"])
         if record["status"] == "pass":
             break
 
@@ -339,6 +494,7 @@ def run(root):
         if (chosen / name).exists():
             shutil.copy2(chosen / name, target)
     shutil.rmtree(work_root, ignore_errors=True)
+    render = render_board(layout, tools["kicad_cli"])
 
     passed = best["status"] == "pass"
     report = {
@@ -352,22 +508,29 @@ def run(root):
         "routing": best.get("routing"),
         "drc": best.get("drc"),
         "checks": best.get("checks", []),
+        "general_rules": general_rules,
+        "render": render,
         "attempts": [
             {key: a.get(key) for key in ("attempt", "seed", "extra_gap_mm", "stage", "status", "reasons")}
             for a in attempts
         ],
     }
     (layout / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+    if recorder:
+        recorder.emit("finished", chosen_attempt=best["attempt"], status=report["status"], reasons=report["reasons"])
     return report
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("usage: layout.py designs/<slug>", file=sys.stderr)
-        return 2
-    root = design_root(sys.argv[1])
+    from demo import positive_speed
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("design")
+    parser.add_argument("--demo", action="store_true", help="record results and animate them in KiCad")
+    parser.add_argument("--speed", type=positive_speed, default=1, help="demo playback speed multiplier")
+    args = parser.parse_args()
+    root = design_root(args.design)
     try:
-        report = run(root)
+        report = run(root, demo=args.demo, speed=args.speed)
     except (NoBoard, LayoutError, json.JSONDecodeError, subprocess.TimeoutExpired) as error:
         print(error, file=sys.stderr)
         return 2

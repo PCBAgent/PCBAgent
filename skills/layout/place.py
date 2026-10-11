@@ -81,10 +81,14 @@ def parse_netlist(text):
     components = []
     for section in children(export, "components"):
         for comp in children(section, "comp"):
+            source = children(comp, "libsource")
             components.append({
                 "ref": child_value(comp, "ref"),
                 "value": child_value(comp, "value"),
+                "description": child_value(comp, "description"),
                 "footprint": child_value(comp, "footprint"),
+                "lib": child_value(source[0], "lib") if source else None,
+                "part": child_value(source[0], "part") if source else None,
             })
     nets = {}
     for section in children(export, "nets"):
