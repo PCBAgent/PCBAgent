@@ -24,6 +24,4 @@ skidl_kicad = SchLib(tool=SKIDL).add_parts(*[
             Pin(num='6',name='-',func=pin_types.INPUT,unit=2),
             Pin(num='7',func=pin_types.OUTPUT,unit=2),
             Pin(num='4',name='V-',func=pin_types.PWRIN,unit=3),
-            Pin(num='8',name='V+',func=pin_types.PWRIN,unit=3)], 'unit_defs':[{'label': 'uA', 'num': 1, 'pin_nums': ['1', '2', '3']},{'label': 'uB', 'num': 2, 'pin_nums': ['6', '5', '7']},{'label': 'uC', 'num': 3, 'pin_nums': ['4', '8']}] }),
-        Part(**{ 'name':'TestPoint', 'dest':TEMPLATE, 'tool':SKIDL, 'aliases':Alias({'TestPoint'}), 'ref_prefix':'TP', 'fplist':[''], 'footprint':'TestPoint:TestPoint_Pad_D1.5mm', 'keywords':'test point tp', 'description':'test point', 'datasheet':'', 'pins':[
-            Pin(num='1',name='1',func=pin_types.PASSIVE,unit=1)], 'unit_defs':[] })])
+            Pin(num='8',name='V+',func=pin_types.PWRIN,unit=3)], 'unit_defs':[{'label': 'uA', 'num': 1, 'pin_nums': ['3', '1', '2']},{'label': 'uB', 'num': 2, 'pin_nums': ['5', '6', '7']},{'label': 'uC', 'num': 3, 'pin_nums': ['8', '4']}] })])

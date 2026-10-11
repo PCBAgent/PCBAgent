@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "status": "complete",
+  "producer_pid": 1283468,
+  "events": [
+    {
+      "sequence": 0,
+      "kind": "placement-ready",
+      "attempt": 1,
+      "artifacts": {
+        "placed.kicad_pcb": "attempt-1/placed.kicad_pcb",
+        "placed.kicad_pro": "attempt-1/placed.kicad_pro",
+        "placement.json": "attempt-1/placement.json"
+      },
+      "board": "attempt-1/placed.kicad_pcb",
+      "scene": "attempt-1/placed.scene.json"
+    },
+    {
+      "sequence": 1,
+      "kind": "routing-ready",
+      "attempt": 1,
+      "artifacts": {
+        "board.kicad_pcb": "attempt-1/board.kicad_pcb",
+        "board.kicad_pro": "attempt-1/board.kicad_pro",
+        "freerouting.log": "attempt-1/freerouting.log",
+        "placed.kicad_pcb": "attempt-1/placed.kicad_pcb",
+        "placed.kicad_pro": "attempt-1/placed.kicad_pro",
+        "placement.json": "attempt-1/placement.json",
+        "routing.json": "attempt-1/routing.json"
+      },
+      "board": "attempt-1/board.kicad_pcb",
+      "scene": "attempt-1/board.scene.json"
+    },
+    {
+      "sequence": 2,
+      "kind": "check-result",
+      "attempt": 1,
+      "status": "pass",
+      "reasons": [],
+      "artifacts": {
+        "board.kicad_pcb": "attempt-1/board.kicad_pcb",
+        "board.kicad_pro": "attempt-1/board.kicad_pro",
+        "drc.json": "attempt-1/drc.json",
+        "freerouting.log": "attempt-1/freerouting.log",
+        "placed.kicad_pcb": "attempt-1/placed.kicad_pcb",
+        "placed.kicad_pro": "attempt-1/placed.kicad_pro",
+        "placement.json": "attempt-1/placement.json",
+        "routing.json": "attempt-1/routing.json"
+      }
+    },
+    {
+      "sequence": 3,
+      "kind": "attempt-result",
+      "attempt": 1,
+      "status": "pass",
+      "stage": "checks",
+      "reasons": [],
+      "artifacts": {
+        "board.kicad_pcb": "attempt-1/board.kicad_pcb",
+        "board.kicad_pro": "attempt-1/board.kicad_pro",
+        "drc.json": "attempt-1/drc.json",
+        "freerouting.log": "attempt-1/freerouting.log",
+        "placed.kicad_pcb": "attempt-1/placed.kicad_pcb",
+        "placed.kicad_pro": "attempt-1/placed.kicad_pro",
+        "placement.json": "attempt-1/placement.json",
+        "routing.json": "attempt-1/routing.json"
+      }
+    },
+    {
+      "sequence": 4,
+      "kind": "finished",
+      "attempt": null,
+      "chosen_attempt": 1,
+      "status": "pass",
+      "reasons": []
+    }
+  ]
+}

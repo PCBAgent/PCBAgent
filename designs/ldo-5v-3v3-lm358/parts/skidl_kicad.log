@@ -7,30 +7,24 @@ WARNING: fp-lib-table file was not found. Component footprints are not available
 WARNING: fp-lib-table file was not found. Component footprints are not available.
 WARNING: fp-lib-table file was not found. Component footprints are not available.
 WARNING: Missing tag on C instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:14.
-WARNING: Random tag nJoGu32LHM generated for C.
+WARNING: Random tag e1tcyc7o7O generated for C.
 WARNING: Missing tag on C instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:15.
-WARNING: Random tag li0ayTczl_ generated for C.
+WARNING: Random tag WTNM30SODI generated for C.
 WARNING: Missing tag on C instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:16.
-WARNING: Random tag bpSbggKy7L generated for C.
+WARNING: Random tag hQz3PtCOcT generated for C.
 WARNING: Missing tag on C instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:17.
-WARNING: Random tag F7ITUw5T24 generated for C.
+WARNING: Random tag 1KY3vVmwHr generated for C.
 WARNING: Missing tag on R instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:18.
-WARNING: Random tag WxwPNlUMBd generated for R.
+WARNING: Random tag AFa582yn6_ generated for R.
 WARNING: Missing tag on R instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:19.
-WARNING: Random tag XzRwEFaGc_ generated for R.
+WARNING: Random tag W8IlNxP6F_ generated for R.
 WARNING: Missing tag on R instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:20.
-WARNING: Random tag rUpKfNf6T2 generated for R.
+WARNING: Random tag 4MW3aWKV_8 generated for R.
 WARNING: Missing tag on AMS1117-3.3 instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:21.
-WARNING: Random tag Nc88s3mYDX generated for AMS1117-3.3.
+WARNING: Random tag dEUzDSfWar generated for AMS1117-3.3.
 WARNING: Missing tag on LM358 instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:22.
-WARNING: Random tag 1OL2qOJoLW generated for LM358.
-WARNING: Missing tag on TestPoint instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:23.
-WARNING: Random tag sfCHg5RPD1 generated for TestPoint.
-WARNING: Missing tag on TestPoint instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:24.
-WARNING: Random tag G2zLdobr3Y generated for TestPoint.
-WARNING: Missing tag on TestPoint instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/skidl_kicad.py:25.
-WARNING: Random tag 2o6cuniIA9 generated for TestPoint.
+WARNING: Random tag vGcUWul39l generated for LM358.
 WARNING: Missing tag on  instantiated at /home/asus/PCBAgent/designs/ldo-5v-3v3-lm358/parts/<frozen importlib._bootstrap>:488.
-INFO: 29 warnings found while generating netlist.
+INFO: 23 warnings found while generating netlist.
 INFO: 0 errors found while generating netlist.
 

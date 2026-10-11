@@ -1,0 +1,332 @@
+{
+  "nets": {
+    "UNUSED": {
+      "length_mm": 1.27,
+      "min_width_mm": 0.25,
+      "body_min_width_mm": null,
+      "segments": [
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.27,
+          "near_pad": true
+        }
+      ]
+    },
+    "DIV_MID": {
+      "length_mm": 10.016952910163461,
+      "min_width_mm": 0.1874,
+      "body_min_width_mm": 0.1874,
+      "segments": [
+        {
+          "width_mm": 0.25,
+          "length_mm": 3.998,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.2892,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.1874,
+          "length_mm": 0.911,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.1874,
+          "length_mm": 1.8308,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.5771,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.4108,
+          "near_pad": false
+        }
+      ]
+    },
+    "VOUT": {
+      "length_mm": 6.47353340342024,
+      "min_width_mm": 0.25,
+      "body_min_width_mm": 0.25,
+      "segments": [
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.27,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.3793,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.8392,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.2888,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.779,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.9173,
+          "near_pad": true
+        }
+      ]
+    },
+    "VIN": {
+      "length_mm": 10.655826139252989,
+      "min_width_mm": 0.25,
+      "body_min_width_mm": 0.25,
+      "segments": [
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.2779,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.6777,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.0762,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.7755,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.5975,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 4.7417,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.5093,
+          "near_pad": true
+        }
+      ]
+    },
+    "LDO_OUT": {
+      "length_mm": 24.155540738937326,
+      "min_width_mm": 0.25,
+      "body_min_width_mm": 0.25,
+      "segments": [
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.0376,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.5963,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 6.3,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 3.2227,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 6.5074,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.4762,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.4945,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.4829,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.5964,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.1288,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.1679,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.1448,
+          "near_pad": true
+        }
+      ]
+    },
+    "GND": {
+      "length_mm": 45.973827969396574,
+      "min_width_mm": 0.25,
+      "body_min_width_mm": 0.25,
+      "segments": [
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.5423,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.3026,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.7669,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.248,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.0581,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.4823,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 3.4677,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.9227,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.8537,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.6974,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.8836,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.0386,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.0847,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.2484,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.2442,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.4028,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.9522,
+          "near_pad": true
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.9578,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 5.4092,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.7997,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.1147,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 2.7541,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 5.2333,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 1.5602,
+          "near_pad": false
+        },
+        {
+          "width_mm": 0.25,
+          "length_mm": 0.9485,
+          "near_pad": false
+        }
+      ]
+    }
+  },
+  "vias": 4
+}

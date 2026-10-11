@@ -3,9 +3,9 @@
   "status": "pass",
   "errors": [],
   "inputs": {
-    "board.net": "09303bd07ccfb629274cf037a5273f64e84223bf59942aa656af91d2724ee429",
-    "parts.json": "6e1a1fb1efa9b993aaae1a06f8edfe3f8a9155de066a8439ed9a4d91bf3ac91a",
-    "skidl_kicad.py": "fc5ac08e1f40f4032b8bbc5607919397c045cd3c2cb78bbb14f0df84827b0206"
+    "board.net": "70b55e68aad7df0eeb222781edda2e431a63ff02c413bf81b8d4355d0796ded0",
+    "parts.json": "8494f28fc7629b27ad9a7edac779830a61cccb89f200f6b7fd4e6fd997ceb985",
+    "skidl_kicad.py": "01f36550d058cc09e182b637f00ab13efc3a5568d711eb0873886026f4a90b23"
   },
   "simulation_inputs": null,
   "limitations": [

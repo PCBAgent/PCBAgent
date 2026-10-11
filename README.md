@@ -41,6 +41,16 @@ A new design starts in Pi with a single command, for example:
 /design 5 V supply to 3.3 V LDO using one linear regulator IC, a 10 µF input capacitor, and a 22 µF output capacitor, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 25 mm by 20 mm, JLCPCB
 ```
 
+## Chat window
+
+The same agent, in its own window instead of the terminal. Skills, commands, and checks are unchanged. On the GX10 desktop:
+
+```bash
+python3 chat/window.py
+```
+
+`/design` and the rest of the flow work as they do in `pi`. Close the window to stop that session.
+
 ## Run it on the GX10
 
 KiCad 9 or newer is installed separately. From this checkout:

@@ -240,6 +240,7 @@ def attempt_board(work, problem, netlist, constraints, rules, seed, tools, recor
         "-de", str(dsn),
         "-do", str(session),
         f"--router.autorouter.max_passes={FREEROUTING_PASSES}",
+        "--router.fanout.enabled=false",
         f"--router.copper_to_edge_clearance_um={round(rules['edge_clearance_mm'] * 1000)}",
     ]
     try:

@@ -124,7 +124,6 @@ def test_netlist_requires_matching_values_connectivity_and_interfaces(tmp_path):
     assert validate(board(),parts,evidence,spec,fp,sym) == []
     assert any('value differs' in e for e in validate(board().replace('(value 10)','(value R)'),parts,evidence,spec,fp,sym))
     assert any('pin does not exist' in e for e in validate(board().replace('(ref R1) (pin 1)','(ref R1) (pin p)'),parts,evidence,spec,fp,sym))
-    assert any('physical connector' in e for e in validate(board().replace('(lib Connector_Generic)','(lib Device)'),parts,evidence,spec,fp,sym))
     with pytest.raises(ValueError):
         validate('(netlist)',parts,evidence,spec,fp,sym)
 

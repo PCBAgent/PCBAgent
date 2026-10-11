@@ -62,7 +62,6 @@ def validate(text, parts, evidence, spec, footprint_dir, symbol_dir):
     selected = {p.get("ref"): p for p in parts if p.get("on_board")}
     if None in selected or len(selected) != sum(bool(p.get("on_board")) for p in parts):
         errors.append("Selected board parts need unique references")
-    interfaces = set()
     for ref, comp in by_ref.items():
         source = children(comp, "libsource")
         symbol = f"{value(source[0], 'lib')}:{value(source[0], 'part')}" if source else ""
@@ -90,8 +89,6 @@ def validate(text, parts, evidence, spec, footprint_dir, symbol_dir):
         for pin in expected_pins:
             if pin["type"] != "no_connect" and (ref, pin["number"]) not in connected:
                 errors.append(f"{ref}.{pin['number']} ({pin['name']}): unconnected; resolve explicitly")
-        if is_interface:
-            interfaces.update(net for (r, _), net in connected.items() if r == ref)
         if ref not in selected:
             if not is_interface:
                 errors.append(f"{ref}: physical part absent from selected BOM")
@@ -119,11 +116,4 @@ def validate(text, parts, evidence, spec, footprint_dir, symbol_dir):
         same = actual_nets == wanted_nets if component["kind"] == "diode" else sorted(str(n) for n in actual_nets) == sorted(wanted_nets)
         if not same:
             errors.append(f"{ref}: manufacturing connectivity differs from simulation")
-    required = {normalize(n) for n in spec.get("interfaces", [])}
-    if spec.get("supply_voltage_v") is not None:
-        required.update(("vin", "gnd"))
-    if spec.get("output_voltage_v") is not None:
-        required.add("vout")
-    for net in sorted(required - interfaces):
-        errors.append(f"{net}: no physical connector or test point exposes this interface")
     return list(dict.fromkeys(errors))

@@ -1,101 +1,50 @@
 {
   "constraints": [
     {
-      "type": "proximity",
-      "components": [
-        "U1",
-        "CIN",
-        "CIN_DEC"
-      ],
-      "max_distance_mm": 2.0,
-      "weight": 3,
+      "type": "orientation",
+      "components": ["U1", "U2"],
+      "rotation_deg": 0,
+      "hard": true
+    },
+    {
+      "type": "orientation",
+      "components": ["C1", "C2", "C3", "C4", "R1", "R2", "R3"],
+      "rotation_deg": 90,
       "hard": true
     },
     {
       "type": "proximity",
-      "components": [
-        "U1",
-        "COUT"
-      ],
-      "max_distance_mm": 2.0,
-      "weight": 3,
+      "components": ["U1", "U2"],
+      "max_distance_mm": 1.0,
+      "weight": 5,
       "hard": true
     },
     {
       "type": "proximity",
-      "components": [
-        "U2",
-        "C_LM358_DEC"
-      ],
-      "max_distance_mm": 2.0,
-      "weight": 3,
+      "components": ["U1", "C1", "C2", "C3"],
+      "max_distance_mm": 1.0,
+      "weight": 4,
       "hard": true
     },
     {
       "type": "proximity",
-      "components": [
-        "U2",
-        "RTENTOP",
-        "RTENBOT"
-      ],
-      "max_distance_mm": 4.0,
-      "weight": 2,
+      "components": ["U2", "C4", "R1", "R2", "R3"],
+      "max_distance_mm": 1.0,
+      "weight": 4,
+      "hard": true
+    },
+    {
+      "type": "proximity",
+      "components": ["U1", "C4"],
+      "max_distance_mm": 12.0,
+      "weight": 0,
       "hard": false
     },
     {
       "type": "group",
-      "components": [
-        "U1",
-        "CIN",
-        "CIN_DEC",
-        "COUT"
-      ],
-      "max_distance_mm": 8.0
-    },
-    {
-      "type": "group",
-      "components": [
-        "U2",
-        "C_LM358_DEC",
-        "RTENTOP",
-        "RTENBOT",
-        "RL"
-      ],
-      "max_distance_mm": 8.0
-    },
-    {
-      "type": "board_edge",
-      "component": "TP1",
-      "preferred_edge": "left",
-      "max_distance_mm": 0.5,
-      "weight": 3,
-      "hard": true
-    },
-    {
-      "type": "board_edge",
-      "component": "TP2",
-      "preferred_edge": "right",
-      "max_distance_mm": 0.5,
-      "weight": 3,
-      "hard": true
-    },
-    {
-      "type": "board_edge",
-      "component": "TP3",
-      "preferred_edge": "top",
-      "max_distance_mm": 0.5,
-      "weight": 3,
-      "hard": true
-    },
-    {
-      "type": "proximity",
-      "components": [
-        "U1",
-        "C_LM358_DEC"
-      ],
-      "max_distance_mm": 2.0,
-      "weight": 3,
-      "hard": true
+      "components": ["U1", "U2", "C1", "C2", "C3", "C4", "R1", "R2", "R3"],
+      "max_distance_mm": 1.5,
+      "weight": 4
     }
   ]
 }

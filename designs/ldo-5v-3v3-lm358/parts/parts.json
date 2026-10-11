@@ -2,7 +2,7 @@
   "source": "/home/asus/PCBAgent/.tools/jlcpcb/economic-parts.csv",
   "parts": [
     {
-      "ref": "RTENTOP",
+      "ref": "R1",
       "kind": "resistor",
       "requested_value": "10000.0",
       "on_board": true,
@@ -46,7 +46,7 @@
       ]
     },
     {
-      "ref": "RTENBOT",
+      "ref": "R2",
       "kind": "resistor",
       "requested_value": "10000.0",
       "on_board": true,
@@ -90,7 +90,7 @@
       ]
     },
     {
-      "ref": "CIN",
+      "ref": "C1",
       "kind": "capacitor",
       "requested_value": "9.999999999999999e-06",
       "on_board": true,
@@ -128,7 +128,7 @@
       ]
     },
     {
-      "ref": "CIN_DEC",
+      "ref": "C2",
       "kind": "capacitor",
       "requested_value": "1.0000000000000001e-07",
       "on_board": true,
@@ -166,7 +166,7 @@
       ]
     },
     {
-      "ref": "COUT",
+      "ref": "C3",
       "kind": "capacitor",
       "requested_value": "2.2e-05",
       "on_board": true,
@@ -204,7 +204,7 @@
       ]
     },
     {
-      "ref": "C_LM358_DEC",
+      "ref": "C4",
       "kind": "capacitor",
       "requested_value": "1.0000000000000001e-07",
       "on_board": true,
@@ -242,7 +242,7 @@
       ]
     },
     {
-      "ref": "RL",
+      "ref": "R3",
       "kind": "resistor",
       "requested_value": "33.0",
       "on_board": true,
