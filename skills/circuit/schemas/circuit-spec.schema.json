@@ -17,6 +17,12 @@
     "bandwidth_hz": { "type": "number" },
     "output_current_a": { "type": "number" },
     "load": { "type": "string" },
+    "external_components": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true,
+      "description": "Simulation-only component references, such as RL. Never inferred from component values."
+    },
     "tolerances": {
       "type": "object",
       "additionalProperties": false,
@@ -55,6 +61,10 @@
         "vendor": { "type": "string" },
         "notes": { "type": "string" }
       }
+    },
+    "skip_verify": {
+      "type": "boolean",
+      "description": "When true, /design does not run ngspice checks. Parts and the netlist proceed without simulation evidence."
     }
   }
 }

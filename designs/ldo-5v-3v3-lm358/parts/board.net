@@ -1,0 +1,469 @@
+(export 
+  (version "D")
+  (design
+    (source "skidl_kicad.py")
+    (date "10/11/2026 11:44 AM")
+    (tool "SKiDL (2.3.0)")
+    (sheet
+      (number 1)
+      (name "/")
+      (tstamps "/")
+      (title_block
+        (title)
+        (company)
+        (rev)
+        (date)
+        (source "skidl_kicad.py")
+        (comment
+          (number "1")
+          (value ""))
+        (comment
+          (number "2")
+          (value ""))
+        (comment
+          (number "3")
+          (value ""))
+        (comment
+          (number "4")
+          (value ""))
+        (comment
+          (number "5")
+          (value ""))
+        (comment
+          (number "6")
+          (value ""))
+        (comment
+          (number "7")
+          (value ""))
+        (comment
+          (number "8")
+          (value ""))
+        (comment
+          (number "9")
+          (value "")))))
+  (components
+    (comp
+      (ref "CIN")
+      (value "10uF 6.3V X5R ±20% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS CL05A106MQ5NUNC")
+      (description "Unpolarized capacitor")
+      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (fields
+        (field
+          (name "Description") "Unpolarized capacitor")
+        (field
+          (name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "nJoGu32LHM")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:14"))
+      (libsource
+        (lib "Device")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "4775b45e-07c6-50cd-9ca3-32818eb96a99"))
+    (comp
+      (ref "CIN_DEC")
+      (value "100nF 16V X7R ±10% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS CL05B104KO5NNNC")
+      (description "Unpolarized capacitor")
+      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (fields
+        (field
+          (name "Description") "Unpolarized capacitor")
+        (field
+          (name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "li0ayTczl_")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:15"))
+      (libsource
+        (lib "Device")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "9321dacc-6d51-5749-b632-d4a35ccd96fb"))
+    (comp
+      (ref "COUT")
+      (value "22uF 6.3V X5R ±20% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS CL10A226MQ8NRNC")
+      (description "Unpolarized capacitor")
+      (footprint "Capacitor_SMD:C_0603_1608Metric")
+      (fields
+        (field
+          (name "Description") "Unpolarized capacitor")
+        (field
+          (name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "bpSbggKy7L")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:16"))
+      (libsource
+        (lib "Device")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "596bd399-4c35-580d-b2c1-72e7223321a3"))
+    (comp
+      (ref "C_LM358_DEC")
+      (value "100nF 16V X7R ±10% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS CL05B104KO5NNNC")
+      (description "Unpolarized capacitor")
+      (footprint "Capacitor_SMD:C_0402_1005Metric")
+      (fields
+        (field
+          (name "Description") "Unpolarized capacitor")
+        (field
+          (name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "F7ITUw5T24")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:17"))
+      (libsource
+        (lib "Device")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "f10947a6-1608-50d6-b269-22d087542aff"))
+    (comp
+      (ref "RL")
+      (value "-55℃~+155℃ 33Ω 50V 62.5mW Thick Film Resistor ±1% ±100ppm/℃ 0402 Chip Resistor - Surface Mount ROHS 0402WGF330JTCE")
+      (description "Resistor")
+      (footprint "Resistor_SMD:R_0402_1005Metric")
+      (fields
+        (field
+          (name "Description") "Resistor")
+        (field
+          (name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "rUpKfNf6T2")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:20"))
+      (libsource
+        (lib "Device")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "41fef421-6abf-5c28-aea0-e70de95ff8fb"))
+    (comp
+      (ref "RTENBOT")
+      (value "-55℃~+155℃ 100mW 10kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS 0603WAF1002T5E")
+      (description "Resistor")
+      (footprint "Resistor_SMD:R_0603_1608Metric")
+      (fields
+        (field
+          (name "Description") "Resistor")
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603_1608Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "XzRwEFaGc_")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:19"))
+      (libsource
+        (lib "Device")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "fc2a1adf-14a2-54d6-9adb-31ae48f82ec6"))
+    (comp
+      (ref "RTENTOP")
+      (value "-55℃~+155℃ 100mW 10kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS 0603WAF1002T5E")
+      (description "Resistor")
+      (footprint "Resistor_SMD:R_0603_1608Metric")
+      (fields
+        (field
+          (name "Description") "Resistor")
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603_1608Metric")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "WxwPNlUMBd")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:18"))
+      (libsource
+        (lib "Device")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "94df2866-0a90-59bb-81cf-5b5b8f1f06ef"))
+    (comp
+      (ref "TP1")
+      (value "VIN")
+      (description "test point")
+      (footprint "TestPoint:TestPoint_Pad_D1.5mm")
+      (fields
+        (field
+          (name "Description") "test point")
+        (field
+          (name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "sfCHg5RPD1")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:23"))
+      (libsource
+        (lib "Connector")
+        (part "TestPoint"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "a4f6da21-ae2f-5ef3-9d92-7d904eed144b"))
+    (comp
+      (ref "TP2")
+      (value "VOUT")
+      (description "test point")
+      (footprint "TestPoint:TestPoint_Pad_D1.5mm")
+      (fields
+        (field
+          (name "Description") "test point")
+        (field
+          (name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "G2zLdobr3Y")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:24"))
+      (libsource
+        (lib "Connector")
+        (part "TestPoint"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "27b75ed3-1af3-5d2c-a652-f76601636a5d"))
+    (comp
+      (ref "TP3")
+      (value "GND")
+      (description "test point")
+      (footprint "TestPoint:TestPoint_Pad_D1.5mm")
+      (fields
+        (field
+          (name "Description") "test point")
+        (field
+          (name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "2o6cuniIA9")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:25"))
+      (libsource
+        (lib "Connector")
+        (part "TestPoint"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "c5b5d6c2-42b4-52a8-806d-b10827632e77"))
+    (comp
+      (ref "U1")
+      (value "-40℃~+125℃ 0.003%Vout 1 1.1V@(800mA) 15V 1A 3.3V 5mA 72dB@(120Hz) Fixed Over Current Protection、Short Circuit Protection、Thermal shutdown Positive SOT-223 Voltage Regulators - Linear, Low Drop Out (LDO) Regulators ROHS AMS1117-3.3")
+      (description "1A Low Dropout regulator, positive, 3.3V fixed output, SOT-223")
+      (footprint "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
+      (fields
+        (field
+          (name "Description") "1A Low Dropout regulator, positive, 3.3V fixed output, SOT-223")
+        (field
+          (name "Footprint") "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
+        (field
+          (name "Datasheet") "http://www.advanced-monolithic.com/pdf/ds1117.pdf")
+        (field
+          (name "SKiDL Tag") "Nc88s3mYDX")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:21"))
+      (libsource
+        (lib "Regulator_Linear")
+        (part "AMS1117-3.3"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "93b69f14-7c34-518f-bffe-b551a0eb946a"))
+    (comp
+      (ref "U2")
+      (value "-16V~16V 0℃~+70℃ 2 3V~32V 40mA 45nA 5nA 700uA 70dB 7mV 7uV/℃ Built-in compensation、ESD protection SOIC-8 Operational Amplifier ROHS LM358DR2G")
+      (description "Low-Power, Dual Operational Amplifiers, DIP-8/SOIC-8/TO-99-8")
+      (footprint "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
+      (fields
+        (field
+          (name "Description") "Low-Power, Dual Operational Amplifiers, DIP-8/SOIC-8/TO-99-8")
+        (field
+          (name "Footprint") "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
+        (field
+          (name "Datasheet") "http://www.ti.com/lit/ds/symlink/lm2904-n.pdf")
+        (field
+          (name "SKiDL Tag") "1OL2qOJoLW")
+        (field
+          (name "SKiDL Line") "skidl_kicad.py:22"))
+      (libsource
+        (lib "Amplifier_Operational")
+        (part "LM358"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "349500f9-ee6d-55a4-bcc0-c6677fb03707")))
+  (nets
+    (net
+      (code 1)
+      (name "DIV_MID")
+      (class "Default")
+      (node
+        (ref "RTENBOT")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "RTENTOP")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U2")
+        (pin "3")
+        (pintype "INPUT")))
+    (net
+      (code 2)
+      (name "GND")
+      (class "Default")
+      (node
+        (ref "CIN")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "CIN_DEC")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "COUT")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "C_LM358_DEC")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "RL")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "RTENBOT")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "TP3")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "1")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U2")
+        (pin "4")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U2")
+        (pin "5")
+        (pintype "INPUT")))
+    (net
+      (code 3)
+      (name "LDO_OUT")
+      (class "Default")
+      (node
+        (ref "COUT")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "C_LM358_DEC")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "RTENTOP")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "2")
+        (pintype "POWER-OUT"))
+      (node
+        (ref "U2")
+        (pin "8")
+        (pintype "POWER-IN")))
+    (net
+      (code 4)
+      (name "UNUSED")
+      (class "Default")
+      (node
+        (ref "U2")
+        (pin "6")
+        (pintype "INPUT"))
+      (node
+        (ref "U2")
+        (pin "7")
+        (pintype "OUTPUT")))
+    (net
+      (code 5)
+      (name "VIN")
+      (class "Default")
+      (node
+        (ref "CIN")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "CIN_DEC")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "TP1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "3")
+        (pintype "POWER-IN")))
+    (net
+      (code 6)
+      (name "VOUT")
+      (class "Default")
+      (node
+        (ref "RL")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "TP2")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U2")
+        (pin "1")
+        (pintype "OUTPUT"))
+      (node
+        (ref "U2")
+        (pin "2")
+        (pintype "INPUT")))))

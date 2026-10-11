@@ -1,0 +1,101 @@
+{
+  "constraints": [
+    {
+      "type": "proximity",
+      "components": [
+        "U1",
+        "CIN",
+        "CIN_DEC"
+      ],
+      "max_distance_mm": 2.0,
+      "weight": 3,
+      "hard": true
+    },
+    {
+      "type": "proximity",
+      "components": [
+        "U1",
+        "COUT"
+      ],
+      "max_distance_mm": 2.0,
+      "weight": 3,
+      "hard": true
+    },
+    {
+      "type": "proximity",
+      "components": [
+        "U2",
+        "C_LM358_DEC"
+      ],
+      "max_distance_mm": 2.0,
+      "weight": 3,
+      "hard": true
+    },
+    {
+      "type": "proximity",
+      "components": [
+        "U2",
+        "RTENTOP",
+        "RTENBOT"
+      ],
+      "max_distance_mm": 4.0,
+      "weight": 2,
+      "hard": false
+    },
+    {
+      "type": "group",
+      "components": [
+        "U1",
+        "CIN",
+        "CIN_DEC",
+        "COUT"
+      ],
+      "max_distance_mm": 8.0
+    },
+    {
+      "type": "group",
+      "components": [
+        "U2",
+        "C_LM358_DEC",
+        "RTENTOP",
+        "RTENBOT",
+        "RL"
+      ],
+      "max_distance_mm": 8.0
+    },
+    {
+      "type": "board_edge",
+      "component": "TP1",
+      "preferred_edge": "left",
+      "max_distance_mm": 0.5,
+      "weight": 3,
+      "hard": true
+    },
+    {
+      "type": "board_edge",
+      "component": "TP2",
+      "preferred_edge": "right",
+      "max_distance_mm": 0.5,
+      "weight": 3,
+      "hard": true
+    },
+    {
+      "type": "board_edge",
+      "component": "TP3",
+      "preferred_edge": "top",
+      "max_distance_mm": 0.5,
+      "weight": 3,
+      "hard": true
+    },
+    {
+      "type": "proximity",
+      "components": [
+        "U1",
+        "C_LM358_DEC"
+      ],
+      "max_distance_mm": 2.0,
+      "weight": 3,
+      "hard": true
+    }
+  ]
+}

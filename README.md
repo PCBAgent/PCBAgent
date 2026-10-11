@@ -1,99 +1,89 @@
 # PCBAgent-GX10
 
-Pi package for the PCB agent. Pi itself is installed on the machine. This repo is the agent: skills now, extensions and prompts when you add them.
+PCBAgent takes one circuit request and, with no further input, designs a private board on the ASUS Ascent GX10: simulated, sourced, and routed offline.
 
-## Development
+A schematic is the product. Part values, pinouts, and the board outline should not have to leave the machine before software can help. PCBAgent runs that work on the GX10, an ultra-small AI computer with the NVIDIA GB10 Grace Blackwell Superchip and 128 GB of unified memory. Nemotron, ngspice, a local JLCPCB catalog, KiCad, and Freerouting all run on the box. Unplugging the network does not stop a design.
 
-Develop on the GX10 over SSH. Edit this checkout there. The GX10 runs Nemotron.
+## Why local
 
-On the GX10, at its own keyboard, print the SSH user, short hostname, and LAN address:
+Cloud schematic tools upload the design before they answer. Here the model and the checkers share the machine where the design is created. There is no cloud round trip, no vendor API for the netlist, and no infrastructure to keep up for a single board. The same flow still runs with the network disconnected.
+
+## What it does
+
+One request moves through four checks. The model writes engineering intent. Deterministic tools decide whether it is true.
+
+1. **Specify and simulate.** `/design` writes a circuit spec and a SKiDL simulation, then runs it in ngspice. A measured value counts only when it came from the simulation.
+2. **Select parts.** Passives and the regulator are matched to a local JLCPCB catalog. Stock, price, and footprint names are copied from that cache and from the installed KiCad libraries.
+3. **Netlist.** The same connections become a KiCad netlist with real symbols and footprints.
+4. **Place and route.** The model writes placement constraints, such as a capacitor next to its IC. It does not emit coordinates or traces. A placer chooses positions, Freerouting draws the copper, and KiCad's design-rule check scores the board.
+
+After that first request, the agent keeps going. A failed check is reported and repaired in the same session. The run stops when you cancel it.
+
+## Demo
+
+Two finished boards are in `designs/`:
+
+- `5v-to-3v3-divider`, a 5 V to 3.3 V divider into a 33 ohm load
+- `5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb`, the same request on an AMS1117-3.3 with 10 µF in and 22 µF out
+
+Replay the routed board in the KiCad PCB Editor from the GX10 desktop. Enable **Preferences → Plugins → Enable KiCad API** first.
 
 ```bash
-whoami
-hostname
-hostname -I
+source .venv/bin/activate
+.venv/bin/python skills/layout/demo.py designs/5v-to-3v3-ldo-10uf-22uf-33ohm-25x20mm-jlcpcb --replay
 ```
 
-`whoami` is the SSH user. `hostname` is the short name. `hostname -I` prints the LAN addresses; the first `192.168.` address is `<gx10-ip>`. From another machine on the LAN:
+Parts move into place, then the copper appears. `layout/board.png` in the same design is the still image of the routed board. To record a new animation while laying out again, run `skills/layout/layout.py designs/<slug> --demo`.
 
-```bash
-ssh <whoami>@<hostname>.local
+A new design starts in Pi with a single command, for example:
+
+```text
+/design 5 V supply to 3.3 V LDO using one linear regulator IC, a 10 µF input capacitor, and a 22 µF output capacitor, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 25 mm by 20 mm, JLCPCB
 ```
 
-If `.local` does not resolve, use `ssh <whoami>@<gx10-ip>`.
+## Run it on the GX10
 
-KiCad 9 or newer is installed separately. From this checkout on the GX10:
+KiCad 9 or newer is installed separately. From this checkout:
 
 ```bash
 ./setup.sh
 source .venv/bin/activate
-```
-
-`requirements.txt` installs SKiDL and the KiCad MCP server into `.venv`. `setup.sh` also installs Pi and `uv` when they are missing, downloads Freerouting 2.5.0 into `.tools/freerouting`, and points the virtualenv at the local KiCad symbol libraries. `.pi/mcp.json` starts the schematic and board MCP servers. KiCad has to be open with its API server enabled before those tools connect.
-
-Confirm the Nemotron id Ollama is serving:
-
-```bash
 ollama list
-curl -s http://127.0.0.1:11434/v1/models
 ```
 
-Copy `models.example.json` to `~/.pi/agent/models.json` and set `models[0].id` to that id. `baseUrl` stays `http://127.0.0.1:11434/v1`. Then:
+`setup.sh` installs Pi and `uv` when they are missing, installs SKiDL into `.venv`, and downloads Freerouting 2.5.0. Use an exact model id from `ollama list`. Start the Ollama bridge in one terminal:
 
 ```bash
-pi
+export PCB_OLLAMA_MODEL=<id from ollama list>
+.venv/bin/python tools/ollama_bridge.py
 ```
 
-Trust the project when asked. `.pi/settings.json` loads this package. `/model` selects the Ollama model.
-
-## Animated layout demonstration
-
-Demo mode shows components moving into place and copper routes appearing in the **KiCad PCB Editor**.
-It presents calculated results; the movement and drawing order illustrate the result rather than
-recording the optimizer's actual history. The original board and check report remain the engineering outputs.
-
-Use KiCad 10.0.7 and install the updated `requirements.txt` (or rerun `./setup.sh`). Enable
-**Preferences → Plugins → Enable KiCad API** in KiCad. From a graphical desktop terminal on that
-machine, after `parts/board.net` and `layout/constraints.json` exist:
+In another terminal, from this checkout:
 
 ```bash
-# Generate, record, and automatically play the stage results
-.venv/bin/python skills/layout/layout.py designs/<slug> --demo
-
-# Replay the latest recording without running placement or routing again
-.venv/bin/python skills/layout/demo.py designs/<slug> --replay
-
-# Play twice as fast
-.venv/bin/python skills/layout/demo.py designs/<slug> --replay --speed 2
+export PCB_OLLAMA_MODEL=<id from ollama list>
+pi --provider pcb-ollama --model "$PCB_OLLAMA_MODEL" --thinking off
 ```
 
-The player opens a separate `demo.kicad_pcb`. Parts start beside the outline, move into place,
-then tracks and vias appear. Captions show computation waits, checks, retries, and the selected
-attempt's actual pass/fail result. Allow roughly 30 seconds of animation per attempt plus computation
-time. Close any KiCad startup dialogs; the player waits up to 30 seconds for the editor's API.
-Use KiCad's normal zoom/pan controls if needed. Rerun replay to restart; Ctrl+C stops replay.
+Trust the project when asked. `.pi/settings.json` loads this package. Restart Pi after pulling extension changes, or run `/reload` in a session that is already open. Stop a run yourself with Escape in Pi, or Ctrl+C in a CLI process.
 
-Recordings live in `designs/<slug>/layout/demo/<run-id>/`: a versioned `manifest.json`, attempt snapshots,
-and exact geometry in integer nanometers. Each playback gets a fresh directory under `playback/`,
-preserving previous demos and generated boards. To replay an older run, pass
-`--manifest <path/to/manifest.json> --replay` instead of a design directory.
+From another machine on the LAN, the GX10 is reached with `ssh <user>@<hostname>.local`, or `ssh <user>@<gx10-ip>` if `.local` does not resolve. At the GX10 keyboard, `whoami`, `hostname`, and `hostname -I` print those values.
 
-An SSH session without a graphical display still records the run; playback reports that no desktop
-is available. Replay from the machine's desktop afterward, or view that desktop remotely. If KiCad
-closes or disconnects, generation and recording continue independently. Incomplete recordings are
-labelled incomplete. KiCad's API preference is not changed automatically.
-Live playback runs independently of the layout command; its progress and any connection errors are
-saved in the recording's `playback.log`, whose path is printed when the run starts.
-
-`KICAD_PCBNEW` selects the PCB Editor executable. `KICAD_API_SOCKET` can specify its IPC socket;
-otherwise the player discovers local sockets and matches the **full demo document path** before
-making changes. Ordinary layout runs without `--demo` need no running editor.
-
-Test recording and playback logic with `.venv/bin/python -m pytest tests/test_demo.py`. To additionally
-exercise a real editor and compare the resulting geometry with the source, run from the desktop:
+## Checks
 
 ```bash
-PCBAGENT_TEST_GUI=1 .venv/bin/python -m pytest tests/test_demo.py -k real_editor -q
+.venv/bin/python -m pytest tests -q
+node --test tests/test_policy.mjs
 ```
 
-This opt-in test opens a disposable demo board and leaves it visible for inspection.
+Stage commands, when you want to run them without the agent:
+
+```bash
+.venv/bin/python tools/pcb_stage.py designs/<slug> prepare
+.venv/bin/python tools/pcb_stage.py designs/<slug> verify
+.venv/bin/python tools/pcb_stage.py designs/<slug> parts
+.venv/bin/python tools/pcb_stage.py designs/<slug> netlist
+.venv/bin/python skills/layout/layout.py designs/<slug>
+```
+
+Each stage prints a short JSON result and writes a full log. Simulation evidence, part ratings, and the netlist report stay next to the design. A passing check covers the measurements and rules the runners implement.

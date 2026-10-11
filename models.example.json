@@ -1,0 +1,24 @@
+{
+  "providers": {
+    "pcb-ollama": {
+      "baseUrl": "http://127.0.0.1:8766/v1",
+      "api": "openai-completions",
+      "apiKey": "local",
+      "models": [
+        {
+          "id": "nemotron3:33b",
+          "reasoning": true,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 32768,
+          "maxTokens": 4096,
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true
+          }
+        }
+      ]
+    }
+  }
+}

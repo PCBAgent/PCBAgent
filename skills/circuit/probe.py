@@ -10,6 +10,10 @@ import importlib.util
 import json
 import sys
 
+from evidence import capture, merge
+
+_evidence = []
+
 
 _real_float = float
 _samples = {}
@@ -214,12 +218,16 @@ def _install():
             return getattr(self._raw, name)
 
     class Simulation:
-        def __init__(self, raw):
+        def __init__(self, raw, circuit):
             self._raw = raw
+            self._circuit = circuit
 
         def _run(self, method, *args, **kwargs):
             _ran["simulated"] = True
-            return Analysis(getattr(self._raw, method)(*args, **kwargs))
+            global _evidence
+            raw = getattr(self._raw, method)(*args, **kwargs)
+            _evidence = merge(_evidence, capture(self._circuit, raw, method))
+            return Analysis(raw)
 
         def operating_point(self, *args, **kwargs):
             return self._run("operating_point", *args, **kwargs)
@@ -241,7 +249,7 @@ def _install():
             self._raw = raw
 
         def simulation(self, *args, **kwargs):
-            return Simulation(self._raw.simulation(*args, **kwargs))
+            return Simulation(self._raw.simulation(*args, **kwargs), args[0] if args else kwargs["circuit"])
 
         def __getattr__(self, name):
             return getattr(self._raw, name)
@@ -311,11 +319,14 @@ def run(path):
 
 
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) not in (3, 4):
         sys.exit("usage: probe.py <skidl_sim.py> <measurements.json>")
     measurements = run(sys.argv[1])
     with open(sys.argv[2], "w", encoding="utf-8") as handle:
         json.dump(measurements, handle)
+    if len(sys.argv) == 4:
+        with open(sys.argv[3], "w", encoding="utf-8") as handle:
+            json.dump({"components": _evidence}, handle, allow_nan=False)
 
 
 if __name__ == "__main__":

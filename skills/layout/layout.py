@@ -6,6 +6,7 @@ Exit 0 when every check passes, 1 when the board was built but a check failed, 2
 """
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -425,7 +426,42 @@ def run(root, demo=False, speed=1, demo_launch=True):
         raise
 
 
+def check_netlist_provenance(root):
+    """Catalog-generated designs need a current manufacturing validation report."""
+    parts = root / "parts"
+    if not (parts / "parts.json").is_file():
+        return  # Standalone externally supplied netlists retain the existing layout API.
+    report_path = parts / "netlist-report.json"
+    if not report_path.is_file():
+        raise NoBoard("Run parts/netlist.py: manufacturing validation report is missing")
+    report = json.loads(report_path.read_text())
+    def hashes(folder, names):
+        return {name: hashlib.sha256((folder / name).read_bytes()).hexdigest()
+                for name in names if (folder / name).is_file()}
+    inputs = hashes(parts, ("board.net", "parts.json", "skidl_kicad.py"))
+    if report.get("status") != "pass" or len(inputs) != 3 or report.get("inputs") != inputs:
+        raise NoBoard("Manufacturing validation is failed or stale; rerun verification, parts lookup and netlist generation")
+    spec_path = root / "design" / "circuit-spec.json"
+    spec = json.loads(spec_path.read_text()) if spec_path.is_file() else {}
+    parts_payload = json.loads((parts / "parts.json").read_text())
+    if spec.get("skip_verify") is True and parts_payload.get("verify") == "skipped":
+        return
+    evidence_path = root / "design" / "simulation-evidence.json"
+    if not evidence_path.is_file():
+        raise NoBoard("Simulation evidence is missing; rerun verification and parts stages")
+    evidence = json.loads(evidence_path.read_text())
+    checks = evidence.get("checks")
+    if evidence.get("status") != "pass" or not checks or any(c.get("status") != "pass" for c in checks):
+        raise NoBoard("Current simulation evidence does not pass")
+    if report.get("simulation_evidence_sha256") != hashlib.sha256(evidence_path.read_bytes()).hexdigest():
+        raise NoBoard("Simulation evidence changed; rerun parts lookup and netlist generation")
+    simulation = hashes(root / "design", ("circuit-spec.json", "skidl_sim.py", "ic.json"))
+    if report.get("status") != "pass" or len(inputs) != 3 or report.get("inputs") != inputs or report.get("simulation_inputs") != simulation:
+        raise NoBoard("Manufacturing validation is failed or stale; rerun verification, parts lookup and netlist generation")
+
+
 def _run(root, recorder=None):
+    check_netlist_provenance(root)
     netlist_path = root / "parts" / "board.net"
     constraints_path = root / "layout" / "constraints.json"
     spec_path = root / "design" / "circuit-spec.json"

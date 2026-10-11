@@ -173,6 +173,9 @@ def voltage_rating(text):
 
 
 def power_rating(text):
+    fraction = re.search(r"(\d+)\s*/\s*(\d+)\s*W\b", text)
+    if fraction and int(fraction[2]):
+        return int(fraction[1]) / int(fraction[2])
     return first_number(WATT, text, {"mW": 1e-3, "W": 1, "mw": 1e-3, "w": 1})
 
 
@@ -442,36 +445,44 @@ def row_record(row, kind, footprint_dir):
         "availability": availability(row),
         "symbol": None,
         "footprint": footprint_for(kind, package, footprint_dir),
+        "footprint_match": "exact" if footprint_for(kind, package, footprint_dir) == _exact_footprint(kind, package) else "heuristic",
         "datasheet": row.get("file") or row.get("datasheet") or "",
     }
 
 
-def _eligible(record, supply_v):
-    if record["kind"] == "capacitor" and supply_v is not None and record["voltage_rating_v"] is not None:
-        if record["voltage_rating_v"] < supply_v:
-            return False
-    return True
+def _eligible(record, supply_v, stress=None):
+    if not record.get("stock") or record["stock"] <= 0 or not record.get("footprint"):
+        return False
+    stress = stress or {}
+    limits = []
+    if record["kind"] == "capacitor":
+        limits.append(("voltage_rating_v", stress.get("voltage_v", supply_v)))
+    if record["kind"] == "resistor":
+        limits.extend((key, stress.get(measured)) for key, measured in
+                      (("power_rating_w", "power_w"), ("voltage_rating_v", "voltage_v")))
+    if record["kind"] == "inductor":
+        limits.append(("current_rating_a", stress.get("current_a")))
+    return all(required is None or (record.get(key) is not None and record[key] >= required)
+               for key, required in limits)
 
 
-def search_passive(rows, kind, value_si, supply_v, footprint_dir, symbol_dir):
-    category = KIND_CATEGORY[kind]
+def search_passive(rows, kind, value_si, supply_v, footprint_dir, symbol_dir, stress=None):
     found = []
     for row in rows:
-        if row.get("category") != category:
+        if row.get("category") != KIND_CATEGORY[kind]:
             continue
         record = row_record(row, kind, footprint_dir)
         record["kind"] = kind
-        if record["value_si"] is None or not _eligible(record, supply_v):
+        if record["value_si"] is None or not _eligible(record, supply_v, stress):
             continue
         if relative_error(record["value_si"], value_si) > 0.01:
             continue
-        found.append(record)
-        found.sort(key=lambda item: (item["availability"] != "basic", item["price"] is None, item["price"] or 0, -(item["stock"] or 0)))
-    if not found:
-        return None
-    chosen = found[0]
-    chosen["symbol"] = symbol_for(kind, chosen["manufacturer_part_number"], symbol_dir)
-    return chosen
+        record["symbol"] = symbol_for(kind, record["manufacturer_part_number"], symbol_dir)
+        if record["symbol"]:
+            found.append(record)
+    found.sort(key=lambda item: (item["availability"] != "basic", item["price"] is None,
+                                 item["price"] or 0, -(item["stock"] or 0)))
+    return found[0] if found else None
 
 
 def wanted_topologies(spec):

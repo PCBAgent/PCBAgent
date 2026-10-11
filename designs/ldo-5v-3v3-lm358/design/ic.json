@@ -1,0 +1,53 @@
+{
+  "ref": "U1",
+  "kind": "regulator",
+  "requested_value": "3.3 V at 0.1 A from 5 V",
+  "on_board": true,
+  "matched": true,
+  "reason": null,
+  "changes_measured_value": false,
+  "lcsc": "C6186",
+  "manufacturer_part_number": "AMS1117-3.3",
+  "manufacturer": "Advanced Monolithic Systems",
+  "value": "-40\u2103~+125\u2103 0.003%Vout 1 1.1V@(800mA) 15V 1A 3.3V 5mA 72dB@(120Hz) Fixed Over Current Protection\u3001Short Circuit Protection\u3001Thermal shutdown Positive SOT-223 Voltage Regulators - Linear, Low Drop Out (LDO) Regulators ROHS AMS1117-3.3",
+  "value_si": null,
+  "tolerance": null,
+  "voltage_rating_v": 15.0,
+  "current_rating_a": 1.0,
+  "power_rating_w": null,
+  "package": "SOT-223",
+  "stock": 1277049,
+  "price": 0.2077,
+  "availability": "basic",
+  "symbol": "Regulator_Linear:AMS1117-3.3",
+  "footprint": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
+  "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121508_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf",
+  "topology": "ldo",
+  "adjustable": false,
+  "feedback_voltage_v": null,
+  "external_diode": false,
+  "footprint_match": "exact",
+  "spec_sha256": "aed8c3daf83de7609007927e42fa86c0c0ade868129450377b8facd46002d1b5",
+  "pins": [
+    {
+      "number": "1",
+      "name": "GND",
+      "type": "power_in"
+    },
+    {
+      "number": "2",
+      "name": "VO",
+      "type": "power_out"
+    },
+    {
+      "number": "3",
+      "name": "VI",
+      "type": "power_in"
+    }
+  ],
+  "roles": {
+    "input": "VI",
+    "output": "VO",
+    "ground": "GND"
+  }
+}

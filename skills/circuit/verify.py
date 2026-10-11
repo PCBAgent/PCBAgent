@@ -4,6 +4,7 @@
 Exit 0 when every check passes, 1 when any check fails, 2 when there is no trustworthy result.
 """
 
+import hashlib
 import json
 import math
 import re
@@ -15,7 +16,7 @@ from pathlib import Path
 
 MEASURED = ("output_voltage_v", "gain", "bandwidth_hz", "output_current_a")
 
-TIMEOUT_S = 600
+TIMEOUT_S = None  # No deadline; cancellation belongs to the user.
 PROBE = Path(__file__).with_name("probe.py")
 
 HINTS = (
@@ -116,9 +117,11 @@ def measure(design):
         raise NoResult(f"{sim} does not exist")
     with tempfile.TemporaryDirectory() as scratch:
         out = Path(scratch) / "measurements.json"
+        evidence_path = Path(scratch) / "evidence.json"
+        (design / "simulation-evidence.json").unlink(missing_ok=True)
         try:
             proc = subprocess.run(
-                [sys.executable, str(PROBE), str(sim), str(out)],
+                [sys.executable, str(PROBE), str(sim), str(out), str(evidence_path)],
                 cwd=design,
                 capture_output=True,
                 text=True,
@@ -126,11 +129,18 @@ def measure(design):
             )
         except subprocess.TimeoutExpired:
             raise NoResult(f"skidl_sim.py did not finish in {TIMEOUT_S} s")
+        (design / "simulation.log").write_text(proc.stdout + proc.stderr, encoding="utf-8")
         if proc.returncode != 0:
             raise NoResult(f"skidl_sim.py exited {proc.returncode}\n{brief(proc.stderr)}")
         if not out.exists():
             raise NoResult("measure() returned without writing measurements")
         measurements = json.loads(out.read_text(encoding="utf-8"))
+        evidence = json.loads(evidence_path.read_text())
+        evidence.update(version=1, status="unverified", inputs={
+            name: hashlib.sha256((design / name).read_bytes()).hexdigest()
+            for name in ("skidl_sim.py", "circuit-spec.json", "ic.json") if (design / name).is_file()
+        })
+        (design / "simulation-evidence.json").write_text(json.dumps(evidence, indent=2) + "\n")
     if not isinstance(measurements, dict):
         raise NoResult("measure() must return a dict of spec field to measured number")
     return measurements
@@ -150,6 +160,11 @@ def run(design):
         if not is_number(value) or not math.isfinite(value):
             raise NoResult(f"measure() returned no finite number for {name}: {value!r}")
         results.append(judge(name, check["target"], float(value), check["tolerance"]))
+    evidence_path = design / "simulation-evidence.json"
+    if evidence_path.is_file():
+        evidence = json.loads(evidence_path.read_text())
+        evidence.update(status="pass" if all(r["status"] == "pass" for r in results) else "fail", checks=results)
+        evidence_path.write_text(json.dumps(evidence, indent=2) + "\n")
     return results
 
 

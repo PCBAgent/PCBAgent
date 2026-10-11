@@ -40,7 +40,7 @@ Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage 
 ### Example
 
 ```text
-/design 5 V supply to 3.3 V LDO using one linear regulator IC, a 10 µF input capacitor, and a 22 µF output capacitor, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 25 mm by 20 mm, JLCPCB
+/design 5 V supply to 3.3 V LDO using one linear regulator IC, a 10 µF input capacitor, a 100 nF regulator decoupling capacitor, and a 22 µF output capacitor, then one LM358 IC on that 3.3 V rail with a 100 nF decoupling capacitor, buffering a divider of two 10 kΩ resistors, output voltage 3.3 V within 0.05 V, output current 0.1 A within 0.01 A into a 33 ohm load, maximum board size 40 mm by 30 mm, JLCPCB. Use basic parts only.
 ```
 
 `/design` writes the SKiDL, runs the tests against that design's `circuit-spec.json`, and revises the SKiDL when a measurement misses. Then:
@@ -69,7 +69,7 @@ Hackathon demonstrations stay inside a small family: op-amp amplifiers, voltage 
 }
 ```
 
-A failure stays inside `/design`. The model reads why the measurement missed and changes the SKiDL so the same tests pass. It does not change the spec to hide a failure. `/design` repeats the tests until pytest exits 0.
+A failure stays inside `/design`. The model reads why the measurement missed and changes the SKiDL so the same tests pass. It does not change the spec to hide a failure. `/design` repeats the tests until pytest exits 0. `skip_verify: true` in the spec skips this measurement loop. Parts selection and the netlist still run, and the report says the electrical checks were not run.
 
 After pytest exits 0, `/design` searches the local JLCPCB cache, `.tools/jlcpcb/economic-parts.csv`, with the spec and the simulated parts, and writes `designs/<slug>/parts/`. The lookup keeps the IC in `design/ic.json`. The cache is basic and preferred parts downloaded once by `skills/parts/fetch_catalog.py`. A lookup does not use the network. `parts/parts.json` records the manufacturer part number, value, tolerance, voltage, current, power, package, stock, price, and basic or preferred status, plus a KiCad symbol and footprint copied from that cache and the installed KiCad 10 libraries. It does not invent stock, price, or footprint names.
 

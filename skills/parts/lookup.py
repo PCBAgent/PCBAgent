@@ -4,6 +4,8 @@
 Reads designs/<slug>/design/. Does not use the network.
 """
 
+import ast
+import math
 import json
 import os
 import re
@@ -13,7 +15,6 @@ from pathlib import Path
 from catalog import (
     default_catalog,
     load_catalog,
-    parse_ohms,
     relative_error,
     search_diode,
     search_passive,
@@ -21,6 +22,7 @@ from catalog import (
     si_from_skidl,
 )
 from pins import pin_roles, symbol_pins
+from validation import digest, rating_checks, simulation_evidence
 
 
 CALL = re.compile(r"\b([RCLD])\s*\(([^)]*)\)")
@@ -42,35 +44,48 @@ def design_root(path):
 
 
 def requests_from_sim(source, spec):
+    """Conservative static fallback; executed circuit evidence is preferred.
+
+    Never evaluate user Python to extract values. Reject expressions we cannot resolve.
+    External components must be declared by reference, never guessed by resistance.
+    """
+    tree = ast.parse(source)
+    constants = {}
     requests = []
-    load_ohms = parse_ohms(spec.get("load") or "")
-    for match in CALL.finditer(source):
-        body = match.group(2)
-        kind = KIND[match.group(1)]
-        ref = REF.search(body)
-        value = VALUE.search(body)
+    def number(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return node.value
+        if isinstance(node, ast.Name) and node.id in constants:
+            return constants[node.id]
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+            return -number(node.operand)
+        raise ValueError("Unresolved component value; run verify.py to extract the executed circuit")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    constants[target.id] = node.value.value
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name) or node.func.id not in KIND:
+            continue
+        args = {kw.arg: kw.value for kw in node.keywords}
+        ref_node = args.get("ref")
+        ref = ref_node.value if isinstance(ref_node, ast.Constant) and isinstance(ref_node.value, str) else None
+        if not ref:
+            raise ValueError("Component has no explicit ref; run verify.py to obtain generated references")
+        kind = KIND[node.func.id]
+        value = args.get("value")
         if kind == "diode":
-            requests.append({
-                "ref": ref.group(1) if ref else None,
-                "kind": "diode",
-                "value_si": None,
-                "requested_value": "schottky catch diode",
-                "on_board": True,
-            })
-            continue
-        if value is None:
-            continue
-        value_si = si_from_skidl(value.group(1), value.group(2))
-        on_board = True
-        if kind == "resistor" and load_ohms is not None and relative_error(value_si, load_ohms) <= 0.01:
-            on_board = False
-        requests.append({
-            "ref": ref.group(1) if ref else None,
-            "kind": kind,
-            "value_si": value_si,
-            "requested_value": f"{value.group(1)} {value.group(2)}",
-            "on_board": on_board,
-        })
+            value_si = None
+        elif isinstance(value, ast.BinOp) and isinstance(value.op, ast.MatMult) and isinstance(value.right, ast.Name):
+            value_si = si_from_skidl(number(value.left), value.right.id)
+        else:
+            value_si = number(value)
+        if value_si is not None and (not math.isfinite(value_si) or value_si <= 0):
+            raise ValueError(f"{ref}: passive value must be finite and positive")
+        requests.append({"ref": ref, "kind": kind, "value_si": value_si,
+                         "requested_value": str(value_si),
+                         "on_board": ref not in spec.get("external_components", [])})
     return requests
 
 
@@ -103,7 +118,7 @@ def blank(request, reason):
 def from_match(request, match):
     changed = False
     if request.get("value_si") is not None and match.get("value_si") is not None:
-        changed = relative_error(match["value_si"], request["value_si"]) > 0.01
+        changed = relative_error(match["value_si"], request["value_si"]) > 1e-9
     record = {
         "ref": request.get("ref"),
         "kind": request["kind"],
@@ -114,10 +129,10 @@ def from_match(request, match):
         "changes_measured_value": changed,
     }
     for key in (
-        "lcsc", "manufacturer_part_number", "manufacturer", "value", "tolerance",
+        "lcsc", "manufacturer_part_number", "manufacturer", "value", "value_si", "tolerance",
         "voltage_rating_v", "current_rating_a", "power_rating_w", "package",
         "stock", "price", "availability", "symbol", "footprint", "datasheet",
-        "topology", "adjustable", "feedback_voltage_v", "external_diode",
+        "topology", "adjustable", "feedback_voltage_v", "external_diode", "footprint_match",
     ):
         record[key] = match.get(key)
     if record["symbol"] is None or record["footprint"] is None:
@@ -150,9 +165,9 @@ def saved_ic(circuit):
     return None
 
 
-def select(spec, sim_source, rows, footprint_dir, symbol_dir, ic=None):
+def select(spec, sim_source, rows, footprint_dir, symbol_dir, ic=None, requests=None):
     chosen = []
-    for request in requests_from_sim(sim_source, spec):
+    for request in requests if requests is not None else requests_from_sim(sim_source, spec):
         if request["kind"] == "diode":
             match = search_diode(
                 rows, spec.get("supply_voltage_v"), spec.get("output_current_a"), footprint_dir, symbol_dir,
@@ -161,9 +176,9 @@ def select(spec, sim_source, rows, footprint_dir, symbol_dir, ic=None):
             chosen.append(from_match(request, match) if match else blank(request, reason))
             continue
         match = search_passive(
-            rows, request["kind"], request["value_si"], spec.get("supply_voltage_v"), footprint_dir, symbol_dir,
+            rows, request["kind"], request["value_si"], spec.get("supply_voltage_v"), footprint_dir, symbol_dir, request.get("stress"),
         )
-        chosen.append(from_match(request, match) if match else blank(request, "no catalog part within 1% of the requested value"))
+        chosen.append(from_match(request, match) if match else blank(request, "no stocked catalog part meets the requested value, observed stress, and footprint requirements"))
     if ic is not None:
         chosen.append(ic)
     elif wants_regulator(spec):
@@ -200,6 +215,7 @@ def choose_ic(root, catalog_path=None, footprint_dir=FOOTPRINT_DIR, symbol_dir=S
     if match is None:
         raise LookupError("no cached regulator meets the output voltage, current, and supply")
     record = from_match(regulator_request(spec), match)
+    record["spec_sha256"] = digest(spec_path)
     record["pins"] = symbol_pins(record.get("symbol"), symbol_dir)
     record["roles"] = pin_roles(record["pins"], record.get("topology"))
     circuit.mkdir(parents=True, exist_ok=True)
@@ -220,15 +236,48 @@ def lookup(root, catalog_path=None, footprint_dir=FOOTPRINT_DIR, symbol_dir=SYMB
             f"no JLCPCB cache at {catalog_path}. Run: .venv/bin/python skills/parts/fetch_catalog.py"
         )
     spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    skip_verify = spec.get("skip_verify") is True
+    evidence, evidence_error = simulation_evidence(circuit)
+    requests = None
+    if evidence is not None:
+        requests = [dict(item, requested_value=str(item.get("value_si")),
+                         on_board=item["ref"] not in spec.get("external_components", []))
+                    for item in evidence.get("components", [])]
+    ic = saved_ic(circuit)
     parts = select(
         spec,
         sim_path.read_text(encoding="utf-8"),
         load_catalog(catalog_path),
         footprint_dir,
         symbol_dir,
-        saved_ic(circuit),
+        ic,
+        requests=requests,
     )
-    payload = {"source": str(catalog_path), "parts": parts}
+    stresses = {item["ref"]: item.get("stress", {}) for item in (requests or [])}
+    for part in parts:
+        part["rating_checks"] = rating_checks(part, stresses.get(part.get("ref"), {}))
+    reasons = [] if skip_verify else ([evidence_error] if evidence_error else [])
+    if ic and ic.get("spec_sha256") != digest(spec_path):
+        reasons.append("Selected IC has no current spec provenance; rerun choose_ic.py and verify.py")
+    if not parts or not any(p.get("on_board") for p in parts):
+        reasons.append("No physical board components were selected")
+    declared_external = set(spec.get("external_components", []))
+    if declared_external - {p.get("ref") for p in parts}:
+        reasons.append("external_components contains references absent from the simulation")
+    for part in parts:
+        ratings_block = any(c["status"] == "fail" or (not skip_verify and c["status"] != "pass") for c in part["rating_checks"])
+        if part.get("on_board") and (not part.get("matched") or part.get("changes_measured_value")
+                or part.get("footprint_match") != "exact"
+                or ratings_block):
+            reasons.append(f"{part.get('ref')}: selection, exact footprint mapping or observed-stress rating is unresolved")
+    limitations = ["Ratings cover only simulated conditions; thermal derating, tolerances, IC model fidelity and datasheet limits require engineering review."]
+    if skip_verify:
+        limitations.insert(0, "skip_verify is set: ngspice checks and observed-stress ratings were not required.")
+    payload = {"source": str(catalog_path), "parts": parts, "status": "unverified" if reasons else "pass",
+               "verify": "skipped" if skip_verify else "checked",
+               "reasons": reasons, "simulation_inputs": evidence.get("inputs") if evidence else None,
+               "simulation_evidence_sha256": digest(circuit / "simulation-evidence.json") if evidence else None,
+               "limitations": limitations}
     destination = root / "parts"
     destination.mkdir(parents=True, exist_ok=True)
     (destination / "parts.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -252,7 +301,7 @@ def main():
     for part in incomplete:
         reason = part["reason"] or "selected value differs from the simulated value"
         print(f"{part['kind']} {part.get('ref') or ''} {reason}", file=sys.stderr)
-    return 1 if incomplete else 0
+    return 1 if incomplete or payload["status"] != "pass" else 0
 
 
 if __name__ == "__main__":

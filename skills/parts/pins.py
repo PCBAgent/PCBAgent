@@ -45,8 +45,8 @@ def _pins(node, found):
     if isinstance(node, list) and node and node[0] == "pin":
         name = _child(node, "name")
         number = _child(node, "number")
-        if name and number:
-            found.append({"number": str(number), "name": str(name), "type": str(node[1]) if len(node) > 1 else ""})
+        if number:
+            found.append({"number": str(number), "name": "" if name is None else str(name), "type": str(node[1]) if len(node) > 1 else ""})
         return
     if isinstance(node, list):
         for item in node[1:]:

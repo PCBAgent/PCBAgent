@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "status": "pass",
+  "errors": [],
+  "inputs": {
+    "board.net": "09303bd07ccfb629274cf037a5273f64e84223bf59942aa656af91d2724ee429",
+    "parts.json": "6e1a1fb1efa9b993aaae1a06f8edfe3f8a9155de066a8439ed9a4d91bf3ac91a",
+    "skidl_kicad.py": "fc5ac08e1f40f4032b8bbc5607919397c045cd3c2cb78bbb14f0df84827b0206"
+  },
+  "simulation_inputs": null,
+  "limitations": [
+    "skip_verify is set: ngspice checks and observed-stress ratings were not required.",
+    "Ratings cover only simulated conditions; thermal derating, tolerances, IC model fidelity and datasheet limits require engineering review."
+  ]
+}

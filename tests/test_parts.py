@@ -31,6 +31,7 @@ SPEC = {
     "output_voltage_v": 3.3,
     "output_current_a": 2,
     "load": "1.65 ohm",
+    "external_components": ["RL"],
     "tolerances": {"output_voltage_v": 0.05},
 }
 
@@ -55,6 +56,17 @@ def design(tmp_path):
     catalog = tmp_path / "catalog.csv"
     catalog.write_text(CSV)
     return tmp_path / "proj", catalog
+
+
+def test_skip_verify_does_not_require_simulation_evidence(tmp_path):
+    root, catalog = design(tmp_path)
+    spec = json.loads((root / "design" / "circuit-spec.json").read_text())
+    spec["skip_verify"] = True
+    (root / "design" / "circuit-spec.json").write_text(json.dumps(spec))
+    footprints, symbols = libraries(tmp_path)
+    payload = lookup(root, catalog, footprints, symbols)
+    assert payload["verify"] == "skipped"
+    assert not any("simulation evidence" in reason for reason in payload["reasons"])
 
 
 def test_lookup_writes_parts_from_the_design_folder(tmp_path):
@@ -298,5 +310,5 @@ def test_netlist_requires_board_net(tmp_path, monkeypatch):
     script = root / "parts" / "skidl_kicad.py"
     script.write_text("from pathlib import Path\nPath('board.net').write_text('(netlist)')\n")
     monkeypatch.setattr(sys, "argv", ["netlist.py", str(root)])
-    assert netlist_main() == 0
-    assert (root / "parts" / "board.net").is_file()
+    assert netlist_main() == 2
+    assert not (root / "parts" / "board.net").exists()

@@ -1,0 +1,425 @@
+{
+  "source": "/home/asus/PCBAgent/.tools/jlcpcb/economic-parts.csv",
+  "parts": [
+    {
+      "ref": "RTENTOP",
+      "kind": "resistor",
+      "requested_value": "10000.0",
+      "on_board": true,
+      "matched": true,
+      "reason": null,
+      "changes_measured_value": false,
+      "lcsc": "C25804",
+      "manufacturer_part_number": "0603WAF1002T5E",
+      "manufacturer": "UNI-ROYAL(Uniroyal Elec)",
+      "value": "-55℃~+155℃ 100mW 10kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS 0603WAF1002T5E",
+      "value_si": 10000.0,
+      "tolerance": "±1%",
+      "voltage_rating_v": 75.0,
+      "current_rating_a": null,
+      "power_rating_w": 0.1,
+      "package": "0603",
+      "stock": 27387155,
+      "price": 0.0018,
+      "availability": "basic",
+      "symbol": "Device:R",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf",
+      "topology": null,
+      "adjustable": null,
+      "feedback_voltage_v": null,
+      "external_diode": null,
+      "footprint_match": "exact",
+      "rating_checks": [
+        {
+          "quantity": "power_w",
+          "measured": null,
+          "rating": 0.1,
+          "status": "unverified"
+        },
+        {
+          "quantity": "voltage_v",
+          "measured": null,
+          "rating": 75.0,
+          "status": "unverified"
+        }
+      ]
+    },
+    {
+      "ref": "RTENBOT",
+      "kind": "resistor",
+      "requested_value": "10000.0",
+      "on_board": true,
+      "matched": true,
+      "reason": null,
+      "changes_measured_value": false,
+      "lcsc": "C25804",
+      "manufacturer_part_number": "0603WAF1002T5E",
+      "manufacturer": "UNI-ROYAL(Uniroyal Elec)",
+      "value": "-55℃~+155℃ 100mW 10kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS 0603WAF1002T5E",
+      "value_si": 10000.0,
+      "tolerance": "±1%",
+      "voltage_rating_v": 75.0,
+      "current_rating_a": null,
+      "power_rating_w": 0.1,
+      "package": "0603",
+      "stock": 27387155,
+      "price": 0.0018,
+      "availability": "basic",
+      "symbol": "Device:R",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2206010045_UNI-ROYAL-Uniroyal-Elec-0603WAF1002T5E_C25804.pdf",
+      "topology": null,
+      "adjustable": null,
+      "feedback_voltage_v": null,
+      "external_diode": null,
+      "footprint_match": "exact",
+      "rating_checks": [
+        {
+          "quantity": "power_w",
+          "measured": null,
+          "rating": 0.1,
+          "status": "unverified"
+        },
+        {
+          "quantity": "voltage_v",
+          "measured": null,
+          "rating": 75.0,
+          "status": "unverified"
+        }
+      ]
+    },
+    {
+      "ref": "CIN",
+      "kind": "capacitor",
+      "requested_value": "9.999999999999999e-06",
+      "on_board": true,
+      "matched": true,
+      "reason": null,
+      "changes_measured_value": false,
+      "lcsc": "C15525",
+      "manufacturer_part_number": "CL05A106MQ5NUNC",
+      "manufacturer": "Samsung Electro-Mechanics",
+      "value": "10uF 6.3V X5R ±20% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS CL05A106MQ5NUNC",
+      "value_si": 9.999999999999999e-06,
+      "tolerance": "±20%",
+      "voltage_rating_v": 6.3,
+      "current_rating_a": null,
+      "power_rating_w": null,
+      "package": "0402",
+      "stock": 10105290,
+      "price": 0.0256,
+      "availability": "basic",
+      "symbol": "Device:C",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2208231630_Samsung-Electro-Mechanics-CL05A106MQ5NUNC_C15525.pdf",
+      "topology": null,
+      "adjustable": null,
+      "feedback_voltage_v": null,
+      "external_diode": null,
+      "footprint_match": "exact",
+      "rating_checks": [
+        {
+          "quantity": "voltage_v",
+          "measured": null,
+          "rating": 6.3,
+          "status": "unverified"
+        }
+      ]
+    },
+    {
+      "ref": "CIN_DEC",
+      "kind": "capacitor",
+      "requested_value": "1.0000000000000001e-07",
+      "on_board": true,
+      "matched": true,
+      "reason": null,
+      "changes_measured_value": false,
+      "lcsc": "C1525",
+      "manufacturer_part_number": "CL05B104KO5NNNC",
+      "manufacturer": "Samsung Electro-Mechanics",
+      "value": "100nF 16V X7R ±10% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS CL05B104KO5NNNC",
+      "value_si": 1.0000000000000001e-07,
+      "tolerance": "±10%",
+      "voltage_rating_v": 16.0,
+      "current_rating_a": null,
+      "power_rating_w": null,
+      "package": "0402",
+      "stock": 20127812,
+      "price": 0.0045,
+      "availability": "basic",
+      "symbol": "Device:C",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf",
+      "topology": null,
+      "adjustable": null,
+      "feedback_voltage_v": null,
+      "external_diode": null,
+      "footprint_match": "exact",
+      "rating_checks": [
+        {
+          "quantity": "voltage_v",
+          "measured": null,
+          "rating": 16.0,
+          "status": "unverified"
+        }
+      ]
+    },
+    {
+      "ref": "COUT",
+      "kind": "capacitor",
+      "requested_value": "2.2e-05",
+      "on_board": true,
+      "matched": true,
+      "reason": null,
+      "changes_measured_value": false,
+      "lcsc": "C59461",
+      "manufacturer_part_number": "CL10A226MQ8NRNC",
+      "manufacturer": "Samsung Electro-Mechanics",
+      "value": "22uF 6.3V X5R ±20% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS CL10A226MQ8NRNC",
+      "value_si": 2.2e-05,
+      "tolerance": "±20%",
+      "voltage_rating_v": 6.3,
+      "current_rating_a": null,
+      "power_rating_w": null,
+      "package": "0603",
+      "stock": 7734641,
+      "price": 0.0311,
+      "availability": "basic",
+      "symbol": "Device:C",
+      "footprint": "Capacitor_SMD:C_0603_1608Metric",
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL10A226MQ8NRNC_C59461.pdf",
+      "topology": null,
+      "adjustable": null,
+      "feedback_voltage_v": null,
+      "external_diode": null,
+      "footprint_match": "exact",
+      "rating_checks": [
+        {
+          "quantity": "voltage_v",
+          "measured": null,
+          "rating": 6.3,
+          "status": "unverified"
+        }
+      ]
+    },
+    {
+      "ref": "C_LM358_DEC",
+      "kind": "capacitor",
+      "requested_value": "1.0000000000000001e-07",
+      "on_board": true,
+      "matched": true,
+      "reason": null,
+      "changes_measured_value": false,
+      "lcsc": "C1525",
+      "manufacturer_part_number": "CL05B104KO5NNNC",
+      "manufacturer": "Samsung Electro-Mechanics",
+      "value": "100nF 16V X7R ±10% 0402 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS CL05B104KO5NNNC",
+      "value_si": 1.0000000000000001e-07,
+      "tolerance": "±10%",
+      "voltage_rating_v": 16.0,
+      "current_rating_a": null,
+      "power_rating_w": null,
+      "package": "0402",
+      "stock": 20127812,
+      "price": 0.0045,
+      "availability": "basic",
+      "symbol": "Device:C",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_Samsung-Electro-Mechanics-CL05B104KO5NNNC_C1525.pdf",
+      "topology": null,
+      "adjustable": null,
+      "feedback_voltage_v": null,
+      "external_diode": null,
+      "footprint_match": "exact",
+      "rating_checks": [
+        {
+          "quantity": "voltage_v",
+          "measured": null,
+          "rating": 16.0,
+          "status": "unverified"
+        }
+      ]
+    },
+    {
+      "ref": "RL",
+      "kind": "resistor",
+      "requested_value": "33.0",
+      "on_board": true,
+      "matched": true,
+      "reason": null,
+      "changes_measured_value": false,
+      "lcsc": "C25105",
+      "manufacturer_part_number": "0402WGF330JTCE",
+      "manufacturer": "UNI-ROYAL(Uniroyal Elec)",
+      "value": "-55℃~+155℃ 33Ω 50V 62.5mW Thick Film Resistor ±1% ±100ppm/℃ 0402 Chip Resistor - Surface Mount ROHS 0402WGF330JTCE",
+      "value_si": 33.0,
+      "tolerance": "±1%",
+      "voltage_rating_v": 50.0,
+      "current_rating_a": null,
+      "power_rating_w": 0.0625,
+      "package": "0402",
+      "stock": 1740291,
+      "price": 0.0012,
+      "availability": "basic",
+      "symbol": "Device:R",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2205311900_UNI-ROYAL-Uniroyal-Elec-0402WGF330JTCE_C25105.pdf",
+      "topology": null,
+      "adjustable": null,
+      "feedback_voltage_v": null,
+      "external_diode": null,
+      "footprint_match": "exact",
+      "rating_checks": [
+        {
+          "quantity": "power_w",
+          "measured": null,
+          "rating": 0.0625,
+          "status": "unverified"
+        },
+        {
+          "quantity": "voltage_v",
+          "measured": null,
+          "rating": 50.0,
+          "status": "unverified"
+        }
+      ]
+    },
+    {
+      "ref": "U1",
+      "kind": "regulator",
+      "requested_value": "3.3 V at 0.1 A from 5 V",
+      "on_board": true,
+      "matched": true,
+      "reason": null,
+      "changes_measured_value": false,
+      "lcsc": "C6186",
+      "manufacturer_part_number": "AMS1117-3.3",
+      "manufacturer": "Advanced Monolithic Systems",
+      "value": "-40℃~+125℃ 0.003%Vout 1 1.1V@(800mA) 15V 1A 3.3V 5mA 72dB@(120Hz) Fixed Over Current Protection、Short Circuit Protection、Thermal shutdown Positive SOT-223 Voltage Regulators - Linear, Low Drop Out (LDO) Regulators ROHS AMS1117-3.3",
+      "value_si": null,
+      "tolerance": null,
+      "voltage_rating_v": 15.0,
+      "current_rating_a": 1.0,
+      "power_rating_w": null,
+      "package": "SOT-223",
+      "stock": 1277049,
+      "price": 0.2077,
+      "availability": "basic",
+      "symbol": "Regulator_Linear:AMS1117-3.3",
+      "footprint": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2410121508_Advanced-Monolithic-Systems-AMS1117-3-3_C6186.pdf",
+      "topology": "ldo",
+      "adjustable": false,
+      "feedback_voltage_v": null,
+      "external_diode": false,
+      "footprint_match": "exact",
+      "spec_sha256": "aed8c3daf83de7609007927e42fa86c0c0ade868129450377b8facd46002d1b5",
+      "pins": [
+        {
+          "number": "1",
+          "name": "GND",
+          "type": "power_in"
+        },
+        {
+          "number": "2",
+          "name": "VO",
+          "type": "power_out"
+        },
+        {
+          "number": "3",
+          "name": "VI",
+          "type": "power_in"
+        }
+      ],
+      "roles": {
+        "input": "VI",
+        "output": "VO",
+        "ground": "GND"
+      },
+      "rating_checks": []
+    },
+    {
+      "ref": "U2",
+      "kind": "amplifier",
+      "requested_value": "LM358",
+      "on_board": true,
+      "matched": true,
+      "reason": null,
+      "changes_measured_value": false,
+      "lcsc": "C7950",
+      "manufacturer_part_number": "LM358DR2G",
+      "manufacturer": "onsemi",
+      "value": "-16V~16V 0℃~+70℃ 2 3V~32V 40mA 45nA 5nA 700uA 70dB 7mV 7uV/℃ Built-in compensation、ESD protection SOIC-8 Operational Amplifier ROHS LM358DR2G",
+      "value_si": null,
+      "tolerance": null,
+      "voltage_rating_v": 32.0,
+      "current_rating_a": 0.04,
+      "power_rating_w": null,
+      "package": "SOIC-8",
+      "stock": 758108,
+      "price": 0.0545,
+      "availability": "basic",
+      "symbol": "Amplifier_Operational:LM358",
+      "footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+      "datasheet": "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_onsemi-LM358DR2G_C7950.pdf",
+      "topology": null,
+      "adjustable": null,
+      "feedback_voltage_v": null,
+      "external_diode": null,
+      "footprint_match": "exact",
+      "pins": [
+        {
+          "number": "1",
+          "name": "",
+          "type": "output"
+        },
+        {
+          "number": "2",
+          "name": "-",
+          "type": "input"
+        },
+        {
+          "number": "3",
+          "name": "+",
+          "type": "input"
+        },
+        {
+          "number": "4",
+          "name": "V-",
+          "type": "power_in"
+        },
+        {
+          "number": "5",
+          "name": "+",
+          "type": "input"
+        },
+        {
+          "number": "6",
+          "name": "-",
+          "type": "input"
+        },
+        {
+          "number": "7",
+          "name": "",
+          "type": "output"
+        },
+        {
+          "number": "8",
+          "name": "V+",
+          "type": "power_in"
+        }
+      ],
+      "rating_checks": []
+    }
+  ],
+  "status": "pass",
+  "verify": "skipped",
+  "reasons": [],
+  "simulation_inputs": null,
+  "simulation_evidence_sha256": null,
+  "limitations": [
+    "skip_verify is set: ngspice checks and observed-stress ratings were not required.",
+    "Ratings cover only simulated conditions; thermal derating, tolerances, IC model fidelity and datasheet limits require engineering review."
+  ]
+}
